@@ -634,7 +634,7 @@ export default function SaliDigiCom({
 
 
         {/* PARALLAX SCREEN 8: CONTACT */}
-        <section id="digicom-contact" className="relative min-h-[100dvh] lg:h-[100dvh] bg-[#ebf1f8] overflow-y-auto lg:overflow-hidden text-[#1c2c46]">
+        <section id="digicom-contact" className="relative h-[100dvh] bg-[#ebf1f8] overflow-hidden text-[#1c2c46]">
           <div className="absolute inset-0 z-0 h-full w-full">
              <img 
                src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=2070" 
