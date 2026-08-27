@@ -1,0 +1,8 @@
+{
+  "name": "Sali Capital Group",
+  "description": "SALI Capital l Société d’investissement",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

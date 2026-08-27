@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sali-capital.com/sitemap.xml
