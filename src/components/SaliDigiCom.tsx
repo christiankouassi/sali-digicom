@@ -645,7 +645,7 @@ export default function SaliDigiCom({
              <div className="absolute inset-0 bg-[#ebf1f8]/60 backdrop-blur-[6px]" />
           </div>
           
-          <div className={`relative z-10 w-full h-auto lg:h-full overflow-y-visible lg:overflow-y-auto pt-24 pb-20 lg:py-12 px-[5vw] ${sectionPadds}`}>
+          <div className={`relative z-10 w-full h-full overflow-y-auto pt-24 pb-20 lg:py-12 px-[5vw] ${sectionPadds}`}>
             <div className="relative z-10 flex flex-col justify-center items-center w-full max-w-7xl mx-auto h-auto lg:h-full px-4 pt-12 lg:pt-0">
               <div className="relative z-10 flex flex-col lg:grid lg:grid-cols-2 h-auto lg:h-full w-full border border-[#d3dfed] rounded-3xl overflow-hidden shadow-2xl bg-white">
                 
