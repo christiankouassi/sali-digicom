@@ -35,7 +35,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
     setSubmitStatus('idle');
     setIsSubmitting(false);
     setValidationError(null);
-  }, [type, initialContactInfo]);
+  }, [type]);
 
   const isWebsite = type === 'website';
 
