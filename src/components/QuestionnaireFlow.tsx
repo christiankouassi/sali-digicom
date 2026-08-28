@@ -85,35 +85,60 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      setValidationError("Le fichier est trop volumineux. La taille maximale autorisée est de 5 Mo.");
+    const fileList = Array.from(files);
+    const currentFiles = formData.graphicCharterFiles || [];
+    const currentFilesData = formData.graphicCharterFilesData || [];
+
+    if (currentFiles.length + fileList.length > 2) {
+      setValidationError("Vous pouvez charger jusqu'à 2 fichiers maximum (logo et charte graphique).");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setFormData((prev: any) => ({
-        ...prev,
-        graphicCharterFile: file.name,
-        graphicCharterFileData: reader.result,
-      }));
-      setValidationError(null);
-    };
-    reader.onerror = () => {
-      setValidationError("Erreur lors de la lecture du fichier.");
-    };
-    reader.readAsDataURL(file);
+    fileList.forEach(file => {
+      if (file.size > 5 * 1024 * 1024) {
+        setValidationError(`Le fichier "${file.name}" est trop volumineux. La taille maximale autorisée est de 5 Mo.`);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        setFormData((prev: any) => {
+          const filesArr = prev.graphicCharterFiles ? [...prev.graphicCharterFiles] : [];
+          const filesDataArr = prev.graphicCharterFilesData ? [...prev.graphicCharterFilesData] : [];
+          
+          if (!filesArr.includes(file.name)) {
+            filesArr.push(file.name);
+            filesDataArr.push(reader.result as string);
+          }
+          
+          return {
+            ...prev,
+            graphicCharterFiles: filesArr,
+            graphicCharterFilesData: filesDataArr
+          };
+        });
+        setValidationError(null);
+      };
+      reader.onerror = () => {
+        setValidationError("Erreur lors de la lecture du fichier.");
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
-  const removeUploadedFile = () => {
-    setFormData((prev: any) => ({
-      ...prev,
-      graphicCharterFile: undefined,
-      graphicCharterFileData: undefined
-    }));
+  const removeUploadedFile = (index: number) => {
+    setFormData((prev: any) => {
+      const filesArr = prev.graphicCharterFiles ? prev.graphicCharterFiles.filter((_: any, i: number) => i !== index) : [];
+      const filesDataArr = prev.graphicCharterFilesData ? prev.graphicCharterFilesData.filter((_: any, i: number) => i !== index) : [];
+      return {
+        ...prev,
+        graphicCharterFiles: filesArr.length > 0 ? filesArr : undefined,
+        graphicCharterFilesData: filesDataArr.length > 0 ? filesDataArr : undefined
+      };
+    });
   };
 
   // Helper validation before next step
@@ -137,18 +162,40 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
           setValidationError("Veuillez indiquer si vous possédez déjà un site web.");
           return false;
         }
+        if (formData.hasSite === true && !formData.existingSiteUrl?.trim()) {
+          setValidationError("Veuillez saisir l'adresse (URL) de votre site existant.");
+          return false;
+        }
+      }
+      if (currentStep === 1) {
+        if (!formData.contentProvider) {
+          setValidationError("Veuillez choisir une option pour la fourniture de contenu.");
+          return false;
+        }
+        if ((!formData.features || formData.features.length === 0) && !formData.featuresOther?.trim()) {
+          setValidationError("Veuillez cocher au moins une fonctionnalité ou préciser vos besoins.");
+          return false;
+        }
+        if ((!formData.languagesSelected || formData.languagesSelected.length === 0) && !formData.languagesOther?.trim()) {
+          setValidationError("Veuillez choisir au moins une langue ou préciser dans la zone de texte.");
+          return false;
+        }
       }
       if (currentStep === 2) {
         if (!formData.designQuote?.trim()) {
           setValidationError("Veuillez indiquer si vous disposez d'une charte graphique ou si vous souhaitez un devis.");
           return false;
         }
-        if (formData.designQuote === 'oui' && !formData.graphicCharterFile) {
+        if (formData.designQuote === 'oui' && (!formData.graphicCharterFiles || formData.graphicCharterFiles.length === 0)) {
           setValidationError("Veuillez charger votre logo et/ou charte graphique.");
           return false;
         }
         if (!formData.likedSites?.trim()) {
           setValidationError("Veuillez renseigner des références de sites inspirants.");
+          return false;
+        }
+        if (!formData.animations?.trim()) {
+          setValidationError("Veuillez choisir une option pour les animations.");
           return false;
         }
       }
@@ -203,7 +250,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
           setValidationError("Veuillez renseigner les informations sur votre identité visuelle.");
           return false;
         }
-        if (formData.visualIdentity === 'oui' && !formData.graphicCharterFile) {
+        if (formData.visualIdentity === 'oui' && (!formData.graphicCharterFiles || formData.graphicCharterFiles.length === 0)) {
           setValidationError("Veuillez charger votre logo et/ou charte graphique.");
           return false;
         }
@@ -273,12 +320,12 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
         { category: '01 VOTRE ENTREPRISE & VOTRE PROJET', question: 'Quel est l\'objectif principal du site ?', answer: [...(formData.objectives || []), formData.objectivesOther ? `Autre: ${formData.objectivesOther}` : ''].filter(Boolean) },
         { category: '01 VOTRE ENTREPRISE & VOTRE PROJET', question: 'Le site sera-t-il vitrine ou e-commerce ?', answer: formData.siteType },
         { category: '01 VOTRE ENTREPRISE & VOTRE PROJET', question: 'Pouvez-vous nous fournir une description de l\'activité de votre société ?', answer: formData.companyDesc },
-        { category: '01 VOTRE ENTREPRISE & VOTRE PROJET', question: 'Avez-vous déjà un site web ?', answer: formData.hasSite ? `Oui - À conserver/améliorer: ${formData.siteFeedback || 'Non spécifié'}` : 'Non' },
+        { category: '01 VOTRE ENTREPRISE & VOTRE PROJET', question: 'Avez-vous déjà un site web ?', answer: formData.hasSite ? `Oui - Lien: ${formData.existingSiteUrl || 'Non renseigné'} | À conserver/améliorer/remplacer: ${formData.siteFeedback || 'Non spécifié'}` : 'Non' },
         
         { category: '02 STRUCTURE & CONTENU', question: 'Quelles pages souhaitez-vous ?', answer: [...(formData.pages || []), formData.pagesOther ? `Autre: ${formData.pagesOther}` : ''].filter(Boolean) },
         { category: '02 STRUCTURE & CONTENU', question: 'Souhaitez-vous que nous fournissions le contenu pour vous ?', answer: formData.contentProvider },
         { category: '02 STRUCTURE & CONTENU', question: 'Quelles fonctionnalités sont nécessaires ?', answer: [...(formData.features || []), formData.featuresOther ? `Autre: ${formData.featuresOther}` : ''].filter(Boolean) },
-        { category: '02 STRUCTURE & CONTENU', question: 'Dans quelle(s) langue(s) le site doit-il être disponible ?', answer: formData.languages },
+        { category: '02 STRUCTURE & CONTENU', question: 'Dans quelle(s) langue(s) le site doit-il être disponible ?', answer: [...(formData.languagesSelected || []), formData.languagesOther ? `Autre: ${formData.languagesOther}` : ''].filter(Boolean) },
 
         { category: '03 DESIGN & EXPÉRIENCE', question: 'Souhaitez-vous un devis pour logo / charte graphique ?', answer: formData.designQuote },
         { category: '03 DESIGN & EXPÉRIENCE', question: 'Quels sites appréciez-vous ? (Références + détails)', answer: formData.likedSites },
@@ -334,7 +381,9 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
         body: JSON.stringify({
           formType: type,
           clientInfo,
-          responses
+          responses,
+          graphicCharterFiles: formData.graphicCharterFiles,
+          graphicCharterFilesData: formData.graphicCharterFilesData
         })
       });
 
@@ -592,12 +641,21 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               })}
                             </div>
                             {formData.hasSite === true && (
-                              <textarea 
-                                value={formData.siteFeedback || ''}
-                                onChange={(e) => handleInputChange('siteFeedback', e.target.value)}
-                                placeholder="Que souhaitez-vous conserver, améliorer ou remplacer sur votre site actuel ? (Facultatif)"
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y mt-2"
-                              />
+                              <div className="flex flex-col gap-2 w-full mt-2">
+                                <input 
+                                  type="text"
+                                  value={formData.existingSiteUrl || ''}
+                                  onChange={(e) => handleInputChange('existingSiteUrl', e.target.value)}
+                                  placeholder="Lien du site existant (Ex: https://monsite.com) * (Réponse obligatoire)"
+                                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
+                                />
+                                <textarea 
+                                  value={formData.siteFeedback || ''}
+                                  onChange={(e) => handleInputChange('siteFeedback', e.target.value)}
+                                  placeholder="Que souhaitez-vous conserver, améliorer ou remplacer sur votre site actuel ? (Facultatif)"
+                                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y"
+                                />
+                              </div>
                             )}
                           </div>
                         </div>
@@ -639,7 +697,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                           </div>
 
                           <div className="flex flex-col gap-2">
-                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Souhaitez-vous que nous fournissions le contenu pour vous ? (Facultatif)</label>
+                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Souhaitez-vous que nous fournissions le contenu pour vous ? * (Réponse obligatoire)</label>
                             <div className="flex flex-col gap-2">
                               {[
                                 "Non, nous allons vous fournir le contenu texte et image.",
@@ -668,7 +726,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                           </div>
 
                           <div className="flex flex-col gap-2">
-                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Quelles fonctionnalités sont nécessaires ? (Facultatif)</label>
+                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Quelles fonctionnalités sont nécessaires ? * (Réponse obligatoire)</label>
                             <div className="grid grid-cols-2 gap-2">
                               {["Formulaire", "Prise de rendez-vous", "Catalogue", "Paiement en ligne", "Chatbot"].map(feat => {
                                 const isChecked = (formData.features || []).includes(feat);
@@ -697,13 +755,33 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                             />
                           </div>
 
-                          <div className="flex flex-col gap-1.5">
-                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Dans quelle(s) langue(s) le site doit-il être disponible ? (Facultatif)</label>
+                          <div className="flex flex-col gap-2">
+                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Dans quelle(s) langue(s) le site doit-il être disponible ? * (Réponse obligatoire)</label>
+                            <div className="grid grid-cols-2 gap-2">
+                              {["Français", "Anglais", "Arabe classique", "Arabe dialectal"].map(lang => {
+                                const isChecked = (formData.languagesSelected || []).includes(lang);
+                                return (
+                                  <label key={lang} className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/50 hover:border-white/10'}`}>
+                                    <input 
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={(e) => handleCheckboxChange('languagesSelected', lang, e.target.checked)}
+                                      className="sr-only"
+                                    />
+                                    <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${isChecked ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
+                                      {isChecked && <Check size={11} strokeWidth={3} className="text-white" />}
+                                    </div>
+                                    <span className="text-xs font-semibold">{lang}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
                             <input 
                               type="text"
-                              value={formData.languages || ''}
-                              onChange={(e) => handleInputChange('languages', e.target.value)}
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
+                              value={formData.languagesOther || ''}
+                              onChange={(e) => handleInputChange('languagesOther', e.target.value)}
+                              placeholder="Si autres, précisez s'il vous plaît (Optionnel)"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none mt-1"
                             />
                           </div>
                         </div>
@@ -716,8 +794,10 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                             <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Avez-vous un logo / charte graphique ? Souhaitez-vous un devis ? * (Réponse obligatoire)</label>
                             <div className="flex flex-col gap-2">
                               {[
-                                { val: 'oui', text: "Oui, j'ai déjà un logo et/ou une charte graphique (Fichier requis)" },
-                                { val: 'devis', text: "Non, je souhaite un devis (Logo & Charte graphique)" },
+                                { val: 'oui', text: "Oui, j'ai déjà un logo et/ou une charte graphique (Fichiers requis)" },
+                                { val: 'devis_deux', text: "Non, je souhaite un devis pour le logo et la charte graphique" },
+                                { val: 'devis_logo', text: "Non, je souhaite un devis pour le logo seulement" },
+                                { val: 'devis_charte', text: "Non, je souhaite un devis pour la charte graphique seulement" },
                                 { val: 'aucun', text: "Non, je ne souhaite pas de devis" }
                               ].map(option => {
                                 const isSelected = formData.designQuote === option.val;
@@ -741,21 +821,26 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
 
                             {formData.designQuote === 'oui' && (
                               <div className="space-y-2 mt-2 p-4 bg-white/5 border border-white/10 rounded-xl">
-                                <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Chargez votre logo et/ou charte graphique * (Fichier requis)</label>
-                                <div className="flex flex-wrap items-center gap-3">
-                                  <label className="flex items-center justify-center gap-2 bg-[#1c2c46] hover:bg-[#1d9878] text-white font-bold uppercase tracking-[1.5px] text-[9.5px] px-4 py-2.5 rounded-lg cursor-pointer transition-all">
+                                <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Chargez vos fichiers * (2 fichiers maximum - Logo & Charte graphique)</label>
+                                <div className="flex flex-col gap-3">
+                                  <label className="flex items-center justify-center gap-2 bg-[#1c2c46] hover:bg-[#1d9878] text-white font-bold uppercase tracking-[1.5px] text-[9.5px] px-4 py-2.5 rounded-lg cursor-pointer transition-all self-start">
                                     <input 
                                       type="file" 
                                       onChange={handleFileChange} 
                                       className="sr-only" 
                                       accept=".pdf,.png,.jpg,.jpeg,.zip" 
+                                      multiple
                                     />
-                                    Sélectionner un fichier
+                                    Sélectionner des fichiers
                                   </label>
-                                  {formData.graphicCharterFile ? (
-                                    <div className="flex items-center gap-2 text-xs font-semibold text-[#1d9878]">
-                                      <span>📎 {formData.graphicCharterFile}</span>
-                                      <button type="button" onClick={removeUploadedFile} className="text-red-400 hover:text-red-300 font-bold ml-1 text-xs">Supprimer</button>
+                                  {formData.graphicCharterFiles && formData.graphicCharterFiles.length > 0 ? (
+                                    <div className="flex flex-col gap-1.5 w-full">
+                                      {formData.graphicCharterFiles.map((name: string, idx: number) => (
+                                        <div key={idx} className="flex items-center gap-2 text-xs font-semibold text-[#1d9878]">
+                                          <span>📎 {name}</span>
+                                          <button type="button" onClick={() => removeUploadedFile(idx)} className="text-red-400 hover:text-red-300 font-bold ml-1 text-xs">Supprimer</button>
+                                        </div>
+                                      ))}
                                     </div>
                                   ) : (
                                     <span className="text-xs text-white/40">Aucun fichier sélectionné</span>
@@ -807,7 +892,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                           </div>
 
                           <div className="flex flex-col gap-2">
-                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Souhaitez-vous des animations, ou une expérience plus statique ? (Facultatif)</label>
+                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Souhaitez-vous des animations, ou une expérience plus statique ? * (Réponse obligatoire)</label>
                             <div className="flex gap-4">
                               {["Oui, avec des animations", "Non, une expérience plus statique"].map(opt => {
                                 const isSelected = formData.animations === opt;
@@ -850,7 +935,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                           <div className="flex flex-col gap-3">
                             <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Quelle option choisissez-vous pour la gestion technique ? * (Réponse obligatoire)</label>
                             {[
-                              { key: "SALI", text: "Je confie la maintenance à SALI DigiCom (la maintenance est offerte)" },
+                              { key: "SALI", text: "Je confie la maintenance à SALI DigiCom" },
                               { key: "Self", text: "Je m'occupe moi-même de la maintenance, et je fournirai mon propre nom de domaine et mon hébergement, que j'achèterai de mon côté." }
                             ].map((opt) => {
                               const isSelected = formData.hostingMaintenance === opt.text;
@@ -1238,8 +1323,10 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                             <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Identité visuelle : Avez-vous un logo / charte graphique ? Souhaitez-vous un devis ? * (Réponse obligatoire)</label>
                             <div className="flex flex-col gap-2">
                               {[
-                                { val: 'oui', text: "Oui, j'ai déjà un logo et/ou une charte graphique (Fichier requis)" },
-                                { val: 'devis', text: "Non, je souhaite un devis (Logo & Charte graphique)" },
+                                { val: 'oui', text: "Oui, j'ai déjà un logo et/ou une charte graphique (Fichiers requis)" },
+                                { val: 'devis_deux', text: "Non, je souhaite un devis pour le logo et la charte graphique" },
+                                { val: 'devis_logo', text: "Non, je souhaite un devis pour le logo seulement" },
+                                { val: 'devis_charte', text: "Non, je souhaite un devis pour la charte graphique seulement" },
                                 { val: 'aucun', text: "Non, je ne souhaite pas de devis" }
                               ].map(option => {
                                 const isSelected = formData.visualIdentity === option.val;
@@ -1263,21 +1350,26 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
 
                             {formData.visualIdentity === 'oui' && (
                               <div className="space-y-2 mt-2 p-4 bg-white/5 border border-white/10 rounded-xl">
-                                <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Chargez votre logo et/ou charte graphique * (Fichier requis)</label>
-                                <div className="flex flex-wrap items-center gap-3">
-                                  <label className="flex items-center justify-center gap-2 bg-[#1c2c46] hover:bg-[#1d9878] text-white font-bold uppercase tracking-[1.5px] text-[9.5px] px-4 py-2.5 rounded-lg cursor-pointer transition-all">
+                                <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Chargez vos fichiers * (2 fichiers maximum - Logo & Charte graphique)</label>
+                                <div className="flex flex-col gap-3">
+                                  <label className="flex items-center justify-center gap-2 bg-[#1c2c46] hover:bg-[#1d9878] text-white font-bold uppercase tracking-[1.5px] text-[9.5px] px-4 py-2.5 rounded-lg cursor-pointer transition-all self-start">
                                     <input 
                                       type="file" 
                                       onChange={handleFileChange} 
                                       className="sr-only" 
                                       accept=".pdf,.png,.jpg,.jpeg,.zip" 
+                                      multiple
                                     />
-                                    Sélectionner un fichier
+                                    Sélectionner des fichiers
                                   </label>
-                                  {formData.graphicCharterFile ? (
-                                    <div className="flex items-center gap-2 text-xs font-semibold text-[#1d9878]">
-                                      <span>📎 {formData.graphicCharterFile}</span>
-                                      <button type="button" onClick={removeUploadedFile} className="text-red-400 hover:text-red-300 font-bold ml-1 text-xs">Supprimer</button>
+                                  {formData.graphicCharterFiles && formData.graphicCharterFiles.length > 0 ? (
+                                    <div className="flex flex-col gap-1.5 w-full">
+                                      {formData.graphicCharterFiles.map((name: string, idx: number) => (
+                                        <div key={idx} className="flex items-center gap-2 text-xs font-semibold text-[#1d9878]">
+                                          <span>📎 {name}</span>
+                                          <button type="button" onClick={() => removeUploadedFile(idx)} className="text-red-400 hover:text-red-300 font-bold ml-1 text-xs">Supprimer</button>
+                                        </div>
+                                      ))}
                                     </div>
                                   ) : (
                                     <span className="text-xs text-white/40">Aucun fichier sélectionné</span>

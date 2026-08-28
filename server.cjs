@@ -248,12 +248,12 @@ app.post('/api/send-email', async (req, res) => {
       to: RECIPIENT_EMAIL,
       subject: emailTitle,
       html: emailHtml,
-      attachments: req.body.graphicCharterFileData && req.body.graphicCharterFile ? [
-        {
-          filename: req.body.graphicCharterFile,
-          path: req.body.graphicCharterFileData
-        }
-      ] : []
+      attachments: req.body.graphicCharterFilesData && req.body.graphicCharterFiles 
+        ? req.body.graphicCharterFiles.map((filename, idx) => ({
+            filename: filename,
+            path: req.body.graphicCharterFilesData[idx]
+          }))
+        : []
     };
 
     const info = await transporter.sendMail(mailOptions);

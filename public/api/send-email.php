@@ -206,9 +206,9 @@ if ($formType === 'website' || $formType === 'community') {
     ';
 }
 
-// Check for attachment
-$attachment_data = isset($data['graphicCharterFileData']) ? $data['graphicCharterFileData'] : null;
-$attachment_name = isset($data['graphicCharterFile']) ? $data['graphicCharterFile'] : null;
+// Check for attachments
+$attachment_files = isset($data['graphicCharterFiles']) ? $data['graphicCharterFiles'] : null;
+$attachment_datas = isset($data['graphicCharterFilesData']) ? $data['graphicCharterFilesData'] : null;
 
 $body = "";
 $headers = "MIME-Version: 1.0" . "\r\n";
@@ -216,10 +216,7 @@ $headers .= "From: Formulaire Web SALI DigiCom <noreply@sali-digicom.com>" . "\r
 $headers .= "Reply-To: " . $clientName . " <" . $clientEmail . ">" . "\r\n";
 $headers .= "X-Mailer: PHP/" . phpversion();
 
-if ($attachment_data && $attachment_name && preg_match('/^data:(.*);base64,(.*)$/', $attachment_data, $matches)) {
-    $file_type = $matches[1];
-    $file_base64 = $matches[2];
-
+if (is_array($attachment_files) && is_array($attachment_datas) && count($attachment_files) > 0) {
     $boundary = md5(time());
     $headers .= "Content-Type: multipart/mixed; boundary=\"" . $boundary . "\"" . "\r\n";
 
@@ -229,12 +226,22 @@ if ($attachment_data && $attachment_name && preg_match('/^data:(.*);base64,(.*)$
     $body .= "Content-Transfer-Encoding: 7bit" . "\r\n\r\n";
     $body .= $emailHtml . "\r\n\r\n";
 
-    // Attachment part
-    $body .= "--" . $boundary . "\r\n";
-    $body .= "Content-Type: " . $file_type . "; name=\"" . $attachment_name . "\"\r\n";
-    $body .= "Content-Disposition: attachment; filename=\"" . $attachment_name . "\"\r\n";
-    $body .= "Content-Transfer-Encoding: base64" . "\r\n\r\n";
-    $body .= chunk_split($file_base64) . "\r\n\r\n";
+    // Attach each file
+    for ($i = 0; $i < count($attachment_files); $i++) {
+        $file_name = $attachment_files[$i];
+        $file_data = $attachment_datas[$i];
+
+        if (preg_match('/^data:(.*);base64,(.*)$/', $file_data, $matches)) {
+            $file_type = $matches[1];
+            $file_base64 = $matches[2];
+
+            $body .= "--" . $boundary . "\r\n";
+            $body .= "Content-Type: " . $file_type . "; name=\"" . $file_name . "\"\r\n";
+            $body .= "Content-Disposition: attachment; filename=\"" . $file_name . "\"\r\n";
+            $body .= "Content-Transfer-Encoding: base64" . "\r\n\r\n";
+            $body .= chunk_split($file_base64) . "\r\n\r\n";
+        }
+    }
     $body .= "--" . $boundary . "--";
 } else {
     $headers .= "Content-Type: text/html; charset=UTF-8" . "\r\n";
