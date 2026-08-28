@@ -145,7 +145,9 @@ export default function SaliDigiCom({
     setIsSending(true);
     setSubmitError(null);
     try {
-      const response = await fetch('/api/send-email', {
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const endpoint = isLocal ? '/api/send-email' : '/api/send-email.php';
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -233,7 +235,7 @@ export default function SaliDigiCom({
         <section id="digicom-presentation" className={`relative h-[100dvh] flex items-center justify-center px-[5vw] overflow-hidden ${sectionPadds}`}>
           <div className="absolute inset-0 z-0 bg-[#ebf1f8]">
             <img 
-              src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=2015" 
+              src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1200" 
               className="w-full h-full object-cover filter brightness-110 contrast-100 opacity-60" 
               alt="SALI DigiCom" 
               referrerPolicy="no-referrer"
@@ -279,7 +281,7 @@ export default function SaliDigiCom({
         <section id="digicom-services-1a" className="relative h-[100dvh] bg-[#ebf1f8] overflow-hidden text-[#1c2c46]">
           <div className="absolute inset-0 z-0 h-full w-full">
             <img 
-              src="https://images.unsplash.com/photo-1542744094-3a31f103e35f?auto=format&fit=crop&q=80&w=2069" 
+              src="https://images.unsplash.com/photo-1542744094-3a31f103e35f?auto=format&fit=crop&q=80&w=1200" 
               alt="Web Design & Development" 
               className="w-full h-full object-cover select-none opacity-55 brightness-110 contrast-100" 
               referrerPolicy="no-referrer"
@@ -337,7 +339,7 @@ export default function SaliDigiCom({
         <section id="digicom-services-1b" className="relative h-[100dvh] bg-[#ebf1f8] overflow-hidden text-[#1c2c46]">
           <div className="absolute inset-0 z-0 h-full w-full">
             <img 
-              src="https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&q=80&w=2074" 
+              src="https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&q=80&w=1200" 
               alt="Brand Design & Visual Identity" 
               className="w-full h-full object-cover select-none opacity-55 brightness-110 contrast-100" 
               referrerPolicy="no-referrer"
@@ -386,7 +388,7 @@ export default function SaliDigiCom({
         <section id="digicom-services-2a" className="relative h-[100dvh] bg-[#ebf1f8] overflow-hidden text-[#1c2c46]">
           <div className="absolute inset-0 z-0 h-full w-full">
             <img 
-              src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=2015" 
+              src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1200" 
               alt="Digital Marketing Campaigns" 
               className="w-full h-full object-cover select-none opacity-55 brightness-110 contrast-100" 
               referrerPolicy="no-referrer"
@@ -444,7 +446,7 @@ export default function SaliDigiCom({
         <section id="digicom-services-2b" className="relative h-[100dvh] bg-[#ebf1f8] overflow-hidden text-[#1c2c46]">
           <div className="absolute inset-0 z-0 h-full w-full">
             <img 
-              src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=2064" 
+              src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1200" 
               alt="AI and Automation" 
               className="w-full h-full object-cover select-none opacity-55 brightness-110 contrast-100" 
               referrerPolicy="no-referrer"
@@ -493,7 +495,7 @@ export default function SaliDigiCom({
         <section id="digicom-products-1" className="relative h-[100dvh] bg-[#ebf1f8] overflow-hidden text-[#1c2c46]">
           <div className="absolute inset-0 z-0 h-full w-full">
             <img 
-              src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=2070" 
+              src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=1200" 
               alt="Creative Strategy Approach" 
               className="w-full h-full object-cover select-none opacity-55 brightness-110 contrast-100" 
               referrerPolicy="no-referrer"
@@ -559,7 +561,7 @@ export default function SaliDigiCom({
         <section id="digicom-products-2" className="relative h-[100dvh] bg-[#ebf1f8] overflow-hidden text-[#1c2c46]">
           <div className="absolute inset-0 z-0 h-full w-full">
             <img 
-              src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=2070" 
+              src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=1200" 
               alt="Our Corporate Values" 
               className="w-full h-full object-cover select-none opacity-55 brightness-110 contrast-100" 
               referrerPolicy="no-referrer"
@@ -637,7 +639,7 @@ export default function SaliDigiCom({
         <section id="digicom-contact" className="relative h-[100dvh] bg-[#ebf1f8] overflow-hidden text-[#1c2c46]">
           <div className="absolute inset-0 z-0 h-full w-full">
              <img 
-               src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=2070" 
+               src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1200" 
                className="w-full h-full object-cover opacity-55 brightness-110 contrast-100" 
                alt="Contact Background" 
                referrerPolicy="no-referrer"

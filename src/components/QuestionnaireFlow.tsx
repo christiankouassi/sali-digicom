@@ -37,6 +37,14 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
     setValidationError(null);
   }, [type]);
 
+  // Scroll to top on step changes
+  useEffect(() => {
+    const container = document.querySelector('.fixed.inset-0.overflow-y-auto');
+    if (container) {
+      container.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [currentStep]);
+
   const isWebsite = type === 'website';
 
   // Config steps
@@ -249,7 +257,9 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
     }
 
     try {
-      const response = await fetch('/api/send-email', {
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const endpoint = isLocal ? '/api/send-email' : '/api/send-email.php';
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -430,7 +440,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                       onChange={(e) => handleCheckboxChange('objectives', obj, e.target.checked)}
                                       className="sr-only"
                                     />
-                                    <div className={`w-4.5 h-4.5 rounded border flex items-center justify-center ${isChecked ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
+                                    <div className={`w-4.5 h-4.5 rounded border flex items-center justify-center shrink-0 ${isChecked ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
                                       {isChecked && <Check size={12} strokeWidth={3} className="text-white" />}
                                     </div>
                                     <span className="text-xs font-medium">{obj}</span>
@@ -461,7 +471,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                       onChange={() => handleInputChange('siteType', type)}
                                       className="sr-only"
                                     />
-                                    <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
+                                    <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
                                       {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#1d9878]" />}
                                     </div>
                                     <span className="text-xs font-medium">{type}</span>
@@ -499,7 +509,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                       onChange={() => handleInputChange('hasSite', opt.val)}
                                       className="sr-only"
                                     />
-                                    <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
+                                    <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
                                       {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#1d9878]" />}
                                     </div>
                                     <span className="text-xs font-medium">{opt.label}</span>
@@ -537,7 +547,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                       onChange={(e) => handleCheckboxChange('pages', page, e.target.checked)}
                                       className="sr-only"
                                     />
-                                    <div className={`w-4 h-4 rounded border flex items-center justify-center ${isChecked ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
+                                    <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${isChecked ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
                                       {isChecked && <Check size={11} strokeWidth={3} className="text-white" />}
                                     </div>
                                     <span className="text-xs font-semibold">{page}</span>
@@ -573,7 +583,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                       onChange={() => handleInputChange('contentProvider', option)}
                                       className="sr-only"
                                     />
-                                    <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
+                                    <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
                                       {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#1d9878]" />}
                                     </div>
                                     <span className="text-xs font-medium">{option}</span>
@@ -596,7 +606,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                       onChange={(e) => handleCheckboxChange('features', feat, e.target.checked)}
                                       className="sr-only"
                                     />
-                                    <div className={`w-4 h-4 rounded border flex items-center justify-center ${isChecked ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
+                                    <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${isChecked ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
                                       {isChecked && <Check size={11} strokeWidth={3} className="text-white" />}
                                     </div>
                                     <span className="text-xs font-semibold">{feat}</span>
@@ -650,7 +660,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                       onChange={() => handleInputChange('designQuote', option)}
                                       className="sr-only"
                                     />
-                                    <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
+                                    <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
                                       {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#1d9878]" />}
                                     </div>
                                     <span className="text-xs font-medium">{option}</span>
@@ -683,7 +693,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                       onChange={(e) => handleCheckboxChange('style', st, e.target.checked)}
                                       className="sr-only"
                                     />
-                                    <div className={`w-4 h-4 rounded border flex items-center justify-center ${isChecked ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
+                                    <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${isChecked ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
                                       {isChecked && <Check size={11} strokeWidth={3} className="text-white" />}
                                     </div>
                                     <span className="text-xs font-semibold">{st}</span>
@@ -714,7 +724,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                       onChange={() => handleInputChange('animations', opt)}
                                       className="sr-only"
                                     />
-                                    <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
+                                    <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
                                       {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#1d9878]" />}
                                     </div>
                                     <span className="text-xs font-medium">{opt}</span>
@@ -757,7 +767,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                     onChange={() => handleInputChange('hostingMaintenance', opt.text)}
                                     className="sr-only"
                                   />
-                                  <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
+                                  <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center shrink-0 shrink-0 mt-0.5 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
                                     {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#1d9878]" />}
                                   </div>
                                   <span className="text-xs font-semibold leading-normal">{opt.text}</span>
@@ -838,7 +848,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                         onChange={() => handleInputChange('whatsapp', opt.val)}
                                         className="sr-only"
                                       />
-                                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
+                                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
                                         {isSelected && <div className="w-2 h-2 rounded-full bg-[#1d9878]" />}
                                       </div>
                                       <span className="text-xs font-semibold">{opt.label}</span>
@@ -913,7 +923,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 }}
                                 className="sr-only"
                               />
-                              <div className={`w-4 h-4 rounded border flex items-center justify-center ${formData.brandWordsSuggestion ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
+                              <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${formData.brandWordsSuggestion ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
                                 {formData.brandWordsSuggestion && <Check size={11} strokeWidth={3} className="text-white" />}
                               </div>
                               <span className="text-[11px] font-semibold">Je n'ai pas encore ces mots en tête — proposez-moi des suggestions</span>
@@ -948,7 +958,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                       onChange={(e) => handleCheckboxChange('objectives', obj, e.target.checked)}
                                       className="sr-only"
                                     />
-                                    <div className={`w-4 h-4 rounded border flex items-center justify-center ${isChecked ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
+                                    <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${isChecked ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
                                       {isChecked && <Check size={11} strokeWidth={3} className="text-white" />}
                                     </div>
                                     <span className="text-xs font-semibold leading-tight">{obj}</span>
@@ -1007,7 +1017,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                       onChange={(e) => handleCheckboxChange('socialMedia', sm, e.target.checked)}
                                       className="sr-only"
                                     />
-                                    <div className={`w-4 h-4 rounded border flex items-center justify-center ${isChecked ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
+                                    <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${isChecked ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
                                       {isChecked && <Check size={11} strokeWidth={3} className="text-white" />}
                                     </div>
                                     <span className="text-xs font-semibold">{sm}</span>
@@ -1061,7 +1071,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                       onChange={(e) => handleCheckboxChange('formats', f, e.target.checked)}
                                       className="sr-only"
                                     />
-                                    <div className={`w-4 h-4 rounded border flex items-center justify-center ${isChecked ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
+                                    <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${isChecked ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
                                       {isChecked && <Check size={11} strokeWidth={3} className="text-white" />}
                                     </div>
                                     <span className="text-[10.5px] font-semibold leading-tight">{f}</span>
@@ -1101,7 +1111,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                       onChange={(e) => handleCheckboxChange('editorialStyle', style, e.target.checked)}
                                       className="sr-only"
                                     />
-                                    <div className={`w-4 h-4 rounded border flex items-center justify-center ${isChecked ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
+                                    <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${isChecked ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
                                       {isChecked && <Check size={11} strokeWidth={3} className="text-white" />}
                                     </div>
                                     <span className="text-xs font-semibold leading-tight">{style}</span>
@@ -1150,7 +1160,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                       onChange={() => handleInputChange('visualIdentity', option)}
                                       className="sr-only"
                                     />
-                                    <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
+                                    <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center shrink-0 shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
                                       {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#1d9878]" />}
                                     </div>
                                     <span className="text-xs font-semibold leading-tight">{option}</span>
@@ -1195,7 +1205,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                         onChange={() => handleInputChange('useAds', opt.val)}
                                         className="sr-only"
                                       />
-                                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
+                                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
                                         {isSelected && <div className="w-2 h-2 rounded-full bg-[#1d9878]" />}
                                       </div>
                                       <span className="text-xs font-semibold">{opt.label}</span>
@@ -1221,7 +1231,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                         onChange={() => handleInputChange('hasSite', opt.val)}
                                         className="sr-only"
                                       />
-                                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
+                                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
                                         {isSelected && <div className="w-2 h-2 rounded-full bg-[#1d9878]" />}
                                       </div>
                                       <span className="text-xs font-semibold">{opt.label}</span>
@@ -1341,7 +1351,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                         onChange={() => handleInputChange('whatsapp', opt.val)}
                                         className="sr-only"
                                       />
-                                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
+                                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
                                         {isSelected && <div className="w-2 h-2 rounded-full bg-[#1d9878]" />}
                                       </div>
                                       <span className="text-xs font-semibold">{opt.label}</span>

@@ -91,12 +91,14 @@ export default function App() {
   const touchYRef = useRef(0);
   const hasTriggeredSwipeRef = useRef(false);
   const transitionLockRef = useRef(false);
+  const activeQuestionnaireRef = useRef(activeQuestionnaire);
 
   // Sync references with React state variables on every render
   currentSectionRef.current = currentSection;
   activeSectionsRef.current = activeSections;
   isMovingRef.current = isMoving;
   isMenuOpenRef.current = isMenuOpen;
+  activeQuestionnaireRef.current = activeQuestionnaire;
 
   const handleSectionClick = (index: number) => {
     goToSection(index);
@@ -310,7 +312,7 @@ export default function App() {
   // Handle Wheel and Touch
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
-      if (transitionLockRef.current || isMovingRef.current || isMenuOpenRef.current) return;
+      if (transitionLockRef.current || isMovingRef.current || isMenuOpenRef.current || activeQuestionnaireRef.current !== null) return;
       
       const target = e.target as HTMLElement | null;
       const scrollable = target && typeof target.closest === 'function' 
@@ -360,7 +362,7 @@ export default function App() {
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (transitionLockRef.current || isMovingRef.current || isMenuOpenRef.current) return;
+      if (transitionLockRef.current || isMovingRef.current || isMenuOpenRef.current || activeQuestionnaireRef.current !== null) return;
       if (hasTriggeredSwipeRef.current) {
         // Prevent supplementary triggers during this swipe motion
         return;
@@ -948,7 +950,7 @@ export default function App() {
           {/* HERO SECTION */}
           <section id="hero" className={`relative h-[100dvh] bg-[#ebf1f8] flex items-center justify-center px-[5vw] overflow-hidden ${sectionPadds}`}>
             <div className="absolute inset-0 z-0 bg-[#ebf1f8]">
-              <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070" className="w-full h-full object-cover filter brightness-110 contrast-100 opacity-55" alt="Modern Business" />
+              <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=1200" className="w-full h-full object-cover filter brightness-110 contrast-100 opacity-55" alt="Modern Business" />
               <div className="absolute inset-0 bg-[#ebf1f8]/60 backdrop-blur-[6px]" />
             </div>
             
@@ -998,7 +1000,7 @@ export default function App() {
           {/* ABOUT SECTION */}
           <section id="about" className="relative h-[100dvh] bg-[#ebf1f8] overflow-hidden">
             <div className="absolute inset-0 z-0 h-full w-full">
-              <img src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=2070" className="w-full h-full object-cover opacity-55" alt="About" />
+              <img src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=1200" className="w-full h-full object-cover opacity-55" alt="About" />
               <div className="absolute inset-0 bg-[#ebf1f8]/60 backdrop-blur-[6px]" />
             </div>
             
@@ -1078,7 +1080,7 @@ export default function App() {
           {/* EXPERTISE SECTION */}
           <section id="expertise" className="relative h-[100dvh] bg-[#ebf1f8] overflow-hidden">
             <div className="absolute inset-0 z-0 h-full w-full">
-              <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2069" className="w-full h-full object-cover opacity-55" alt="Expertise BG" />
+              <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200" className="w-full h-full object-cover opacity-55" alt="Expertise BG" />
               <div className="absolute inset-0 bg-[#ebf1f8]/60 backdrop-blur-[6px]" />
             </div>
             
@@ -1252,7 +1254,7 @@ export default function App() {
                   {/* CONTACT SECTION */}
           <section id="contact" className="relative h-[100dvh] bg-[#ebf1f8] overflow-hidden">
             <div className="absolute inset-0 z-0 h-full w-full">
-               <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=2070" className="w-full h-full object-cover opacity-55 brightness-110 contrast-100" alt="Contact" />
+               <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1200" className="w-full h-full object-cover opacity-55 brightness-110 contrast-100" alt="Contact" />
                <div className="absolute inset-0 bg-[#ebf1f8]/60 backdrop-blur-[6px]" />
             </div>
             
