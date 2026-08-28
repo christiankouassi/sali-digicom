@@ -206,15 +206,43 @@ if ($formType === 'website' || $formType === 'community') {
     ';
 }
 
-// Mail Headers for HTML sending
+// Check for attachment
+$attachment_data = isset($data['graphicCharterFileData']) ? $data['graphicCharterFileData'] : null;
+$attachment_name = isset($data['graphicCharterFile']) ? $data['graphicCharterFile'] : null;
+
+$body = "";
 $headers = "MIME-Version: 1.0" . "\r\n";
-$headers .= "Content-Type: text/html; charset=UTF-8" . "\r\n";
 $headers .= "From: Formulaire Web SALI DigiCom <noreply@sali-digicom.com>" . "\r\n";
 $headers .= "Reply-To: " . $clientName . " <" . $clientEmail . ">" . "\r\n";
 $headers .= "X-Mailer: PHP/" . phpversion();
 
+if ($attachment_data && $attachment_name && preg_match('/^data:(.*);base64,(.*)$/', $attachment_data, $matches)) {
+    $file_type = $matches[1];
+    $file_base64 = $matches[2];
+
+    $boundary = md5(time());
+    $headers .= "Content-Type: multipart/mixed; boundary=\"" . $boundary . "\"" . "\r\n";
+
+    // HTML part
+    $body = "--" . $boundary . "\r\n";
+    $body .= "Content-Type: text/html; charset=UTF-8" . "\r\n";
+    $body .= "Content-Transfer-Encoding: 7bit" . "\r\n\r\n";
+    $body .= $emailHtml . "\r\n\r\n";
+
+    // Attachment part
+    $body .= "--" . $boundary . "\r\n";
+    $body .= "Content-Type: " . $file_type . "; name=\"" . $attachment_name . "\"\r\n";
+    $body .= "Content-Disposition: attachment; filename=\"" . $attachment_name . "\"\r\n";
+    $body .= "Content-Transfer-Encoding: base64" . "\r\n\r\n";
+    $body .= chunk_split($file_base64) . "\r\n\r\n";
+    $body .= "--" . $boundary . "--";
+} else {
+    $headers .= "Content-Type: text/html; charset=UTF-8" . "\r\n";
+    $body = $emailHtml;
+}
+
 // Send Mail
-if (mail($recipient_email, $emailTitle, $emailHtml, $headers)) {
+if (mail($recipient_email, $emailTitle, $body, $headers)) {
     http_response_code(200);
     echo json_encode(["success" => true, "message" => "Votre message a été envoyé avec succès !"]);
 } else {
