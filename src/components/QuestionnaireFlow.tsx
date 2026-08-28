@@ -643,9 +643,9 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                             <div className="flex flex-col gap-2">
                               {[
                                 "Non, nous allons vous fournir le contenu texte et image.",
-                                "Vous fournissez uniquement le contenu texte.",
-                                "Vous fournissez uniquement les images.",
-                                "Vous fournissez le texte et les images."
+                                "SALI DigiCom fournit uniquement le contenu texte.",
+                                "SALI DigiCom fournit uniquement le contenu image.",
+                                "SALI DigiCom fournit tout le contenu : texte et images."
                               ].map(option => {
                                 const isSelected = formData.contentProvider === option;
                                 return (
