@@ -5,8 +5,24 @@ header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Methods: POST");
 header("Content-Type: application/json; charset=UTF-8");
 
-// CONFIGURATION: Set your recipient email address here
+// ============================================================================
+// CONFIGURATION D'ENVOI D'E-MAILS - INFOMANIAK
+// ============================================================================
 $recipient_email = "contact@sali-digicom.com";
+
+// OPTION 1 : Mode SMTP Authentifié (Recommandé par Infomaniak pour 100% de délivrabilité)
+// Si vous souhaitez utiliser le serveur SMTP officiel d'Infomaniak, passez $smtp_enabled à true
+// et indiquez le mot de passe de la boîte contact@sali-digicom.com ci-dessous.
+$smtp_enabled = false; // Mettre à true pour activer le SMTP
+$smtp_host    = "mail.infomaniak.com";
+$smtp_port    = 587;
+$smtp_user    = "contact@sali-digicom.com";
+$smtp_pass    = ""; // Mot de passe de la boîte e-mail Infomaniak
+
+// OPTION 2 : Fonction native mail() PHP (par défaut)
+// NOTE : Sur Infomaniak, activez la fonction "PHP Mail()" dans votre Manager :
+// Manager Infomaniak > Hébergement Web > Paramètres avancés > PHP/Apache > Activer PHP Mail()
+// ============================================================================
 
 // Only accept POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -302,12 +318,146 @@ if (is_array($attachment_files) && is_array($attachment_datas) && count($attachm
     $body = $emailHtml;
 }
 
-// Send Mail
-if (mail($recipient_email, $emailTitle, $body, $headers)) {
-    http_response_code(200);
-    echo json_encode(["success" => true, "message" => "Votre message a été envoyé avec succès !"]);
+// ============================================================================
+// ENVOI DE L'E-MAIL (SMTP ou Mail PHP)
+// ============================================================================
+if ($smtp_enabled && !empty($smtp_pass)) {
+    $smtp_res = send_smtp_mail(
+        $smtp_host,
+        $smtp_port,
+        $smtp_user,
+        $smtp_pass,
+        $smtp_user,
+        $recipient_email,
+        $emailTitle,
+        $body,
+        $headers
+    );
+
+    if ($smtp_res['success']) {
+        http_response_code(200);
+        echo json_encode(["success" => true, "message" => "Votre message a été transmis avec succès via le serveur SMTP Infomaniak !"]);
+    } else {
+        http_response_code(500);
+        echo json_encode([
+            "error" => "Échec de l'envoi SMTP Infomaniak : " . $smtp_res['error'],
+            "hint" => "Vérifiez vos identifiants dans api/send-email.php ou utilisez le mode mail() PHP."
+        ]);
+    }
 } else {
-    http_response_code(500);
-    echo json_encode(["error" => "Erreur lors de la transmission du message via le serveur de messagerie PHP."]);
+    // Mode mail() PHP par défaut
+    if (@mail($recipient_email, $emailTitle, $body, $headers)) {
+        http_response_code(200);
+        echo json_encode(["success" => true, "message" => "Votre message a été envoyé avec succès !"]);
+    } else {
+        http_response_code(500);
+        echo json_encode([
+            "error" => "Erreur lors de la transmission via la fonction PHP mail().",
+            "hint" => "Sur Infomaniak, la fonction mail() est désactivée par défaut. Activez-la dans votre Manager Infomaniak (Hébergement Web > Paramètres avancés > PHP/Apache > Activer PHP Mail) ou activez le mode SMTP ($smtp_enabled = true avec mot de passe) dans api/send-email.php."
+        ]);
+    }
+}
+
+// Fonction utilitaire SMTP native (sans dépendance externe)
+function send_smtp_mail($host, $port, $user, $pass, $from, $to, $subject, $body, $headers_str) {
+    $timeout = 15;
+    $context = stream_context_create([
+        'ssl' => [
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+            'allow_self_signed' => true
+        ]
+    ]);
+
+    $socket = @stream_socket_client("tcp://{$host}:{$port}", $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $context);
+    if (!$socket) {
+        return ["success" => false, "error" => "Impossible de se connecter à {$host}:{$port} ($errstr)"];
+    }
+
+    $read = function() use ($socket) {
+        $response = "";
+        while ($str = fgets($socket, 515)) {
+            $response .= $str;
+            if (substr($str, 3, 1) === " ") break;
+        }
+        return $response;
+    };
+
+    $send = function($cmd) use ($socket, $read) {
+        fputs($socket, $cmd . "\r\n");
+        return $read();
+    };
+
+    $resp = $read();
+    if (substr($resp, 0, 3) !== "220") {
+        fclose($socket);
+        return ["success" => false, "error" => "Serveur non prêt : " . trim($resp)];
+    }
+
+    $client_host = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'sali-digicom.com';
+    $resp = $send("EHLO " . $client_host);
+
+    // STARTTLS
+    $resp = $send("STARTTLS");
+    if (substr($resp, 0, 3) === "220") {
+        if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+            fclose($socket);
+            return ["success" => false, "error" => "Échec du chiffrement TLS."];
+        }
+        $send("EHLO " . $client_host);
+    }
+
+    // AUTH LOGIN
+    $resp = $send("AUTH LOGIN");
+    if (substr($resp, 0, 3) !== "334") {
+        fclose($socket);
+        return ["success" => false, "error" => "AUTH LOGIN rejeté : " . trim($resp)];
+    }
+
+    $resp = $send(base64_encode($user));
+    if (substr($resp, 0, 3) !== "334") {
+        fclose($socket);
+        return ["success" => false, "error" => "Identifiant rejeté : " . trim($resp)];
+    }
+
+    $resp = $send(base64_encode($pass));
+    if (substr($resp, 0, 3) !== "235") {
+        fclose($socket);
+        return ["success" => false, "error" => "Mot de passe refusé : " . trim($resp)];
+    }
+
+    // Envelope
+    $resp = $send("MAIL FROM: <{$from}>");
+    if (substr($resp, 0, 3) !== "250") {
+        fclose($socket);
+        return ["success" => false, "error" => "Expéditeur refusé : " . trim($resp)];
+    }
+
+    $resp = $send("RCPT TO: <{$to}>");
+    if (substr($resp, 0, 3) !== "250") {
+        fclose($socket);
+        return ["success" => false, "error" => "Destinataire refusé : " . trim($resp)];
+    }
+
+    $resp = $send("DATA");
+    if (substr($resp, 0, 3) !== "354") {
+        fclose($socket);
+        return ["success" => false, "error" => "DATA refusé : " . trim($resp)];
+    }
+
+    $data_payload = "Subject: " . $subject . "\r\n";
+    $data_payload .= "To: <" . $to . ">\r\n";
+    $data_payload .= trim($headers_str) . "\r\n\r\n";
+    $data_payload .= $body . "\r\n.";
+
+    $resp = $send($data_payload);
+    $send("QUIT");
+    fclose($socket);
+
+    if (substr($resp, 0, 3) === "250") {
+        return ["success" => true];
+    } else {
+        return ["success" => false, "error" => "Envoi rejeté : " . trim($resp)];
+    }
 }
 ?>
