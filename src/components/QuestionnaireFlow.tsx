@@ -689,7 +689,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                           value={surveyFeedback}
                           onChange={(e) => setSurveyFeedback(e.target.value)}
                           placeholder="Vos remarques pour nous aider à progresser..."
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y"
                         />
                       </div>
 
@@ -776,7 +776,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.companyInfo || ''}
                               onChange={(e) => handleInputChange('companyInfo', e.target.value)}
                               placeholder="Ex: SALI DigiCom, Agence de Marketing Digital, Casablanca, Maroc..."
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[70px] resize-y"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[70px] resize-y"
                             />
                           </div>
 
@@ -806,7 +806,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.objectivesOther || ''}
                               onChange={(e) => handleInputChange('objectivesOther', e.target.value)}
                               placeholder="Autre, précisez... (Facultatif)"
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none mt-1"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none mt-1"
                             />
                           </div>
 
@@ -848,7 +848,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.companyDesc || ''}
                               onChange={(e) => handleInputChange('companyDesc', e.target.value)}
                               placeholder="Décrivez vos services, vos produits, votre cible..."
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[70px] resize-y"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[70px] resize-y"
                             />
                           </div>
 
@@ -884,13 +884,13 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                   value={formData.existingSiteUrl || ''}
                                   onChange={(e) => handleInputChange('existingSiteUrl', e.target.value)}
                                   placeholder="Lien du site existant (Ex: https://monsite.com) * (Réponse obligatoire)"
-                                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
+                                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
                                 />
                                 <textarea 
                                   value={formData.siteFeedback || ''}
                                   onChange={(e) => handleInputChange('siteFeedback', e.target.value)}
                                   placeholder="Que souhaitez-vous conserver, améliorer ou remplacer sur votre site actuel ? (Facultatif)"
-                                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y"
+                                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y"
                                 />
                               </div>
                             )}
@@ -929,7 +929,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.pagesOther || ''}
                               onChange={(e) => handleInputChange('pagesOther', e.target.value)}
                               placeholder="Autre(s) page(s), précisez... (Facultatif)"
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none mt-1"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none mt-1"
                             />
                           </div>
 
@@ -999,7 +999,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.featuresOther || ''}
                               onChange={(e) => handleInputChange('featuresOther', e.target.value)}
                               placeholder="Autre(s) fonctionnalité(s), précisez... (Facultatif)"
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none mt-1"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none mt-1"
                             />
                           </div>
 
@@ -1029,7 +1029,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.languagesOther || ''}
                               onChange={(e) => handleInputChange('languagesOther', e.target.value)}
                               placeholder="Si autres, précisez s'il vous plaît (Optionnel)"
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none mt-1"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none mt-1"
                             />
                           </div>
                         </div>
@@ -1105,7 +1105,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.likedSites || ''}
                               onChange={(e) => handleInputChange('likedSites', e.target.value)}
                               placeholder="Liens des sites inspirants et vos commentaires..."
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[70px] resize-y"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[70px] resize-y"
                             />
                           </div>
 
@@ -1135,7 +1135,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.styleOther || ''}
                               onChange={(e) => handleInputChange('styleOther', e.target.value)}
                               placeholder="Autre style, précisez... (Facultatif)"
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none mt-1"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none mt-1"
                             />
                           </div>
 
@@ -1169,7 +1169,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.avoidVisuals || ''}
                               onChange={(e) => handleInputChange('avoidVisuals', e.target.value)}
                               placeholder="Couleurs, polices, styles ou concurrents à éviter..."
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y"
                             />
                           </div>
                         </div>
@@ -1219,7 +1219,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.deadline || ''}
                               onChange={(e) => handleInputChange('deadline', e.target.value)}
                               placeholder="Ex: d'ici 1 mois, avant le 31 décembre..."
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
                             />
                           </div>
 
@@ -1232,7 +1232,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 value={formData.clientName || ''}
                                 onChange={(e) => handleInputChange('clientName', e.target.value)}
                                 placeholder="Votre nom"
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
                               />
                             </div>
                             <div className="flex flex-col gap-1.5">
@@ -1241,7 +1241,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 required
                                 value={formData.companyPosition || ''}
                                 onChange={(e) => handleInputChange('companyPosition', e.target.value)}
-                                className="w-full bg-[#0a1526] border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] focus:border-[#1d9878] focus:outline-none cursor-pointer"
+                                className="w-full bg-[#0a1526] border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs focus:border-[#1d9878] focus:outline-none cursor-pointer"
                               >
                                 <option value="" disabled className="text-white/40">Sélectionnez votre position...</option>
                                 {POSITIONS.map(pos => (
@@ -1260,7 +1260,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 value={formData.clientEmail || ''}
                                 onChange={(e) => handleInputChange('clientEmail', e.target.value)}
                                 placeholder="Votre e-mail"
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
                               />
                             </div>
                             <div className="flex flex-col gap-1.5">
@@ -1271,7 +1271,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 value={formData.clientPhone || ''}
                                 onChange={(e) => handleInputChange('clientPhone', e.target.value)}
                                 placeholder="Ex: +212 600-000000"
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
                               />
                             </div>
                           </div>
@@ -1309,7 +1309,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.comments || ''}
                               onChange={(e) => handleInputChange('comments', e.target.value)}
                               placeholder="Ajoutez toute précision utile..."
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[50px] resize-y"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[50px] resize-y"
                             />
                           </div>
                         </div>
@@ -1334,7 +1334,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 value={formData.companyName || ''}
                                 onChange={(e) => handleInputChange('companyName', e.target.value)}
                                 placeholder="Nom de votre marque ou société"
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
                               />
                             </div>
                             <div className="flex flex-col gap-1.5">
@@ -1345,7 +1345,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 value={formData.companyActivity || ''}
                                 onChange={(e) => handleInputChange('companyActivity', e.target.value)}
                                 placeholder="Ex: Restaurant, Prêt-à-porter, Immobilier..."
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
                               />
                             </div>
                           </div>
@@ -1357,7 +1357,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.companyCountry || ''}
                               onChange={(e) => handleInputChange('companyCountry', e.target.value)}
                               placeholder="Ex: Maroc, France, Côte d'Ivoire..."
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
                             />
                           </div>
 
@@ -1367,7 +1367,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.values || ''}
                               onChange={(e) => handleInputChange('values', e.target.value)}
                               placeholder="Qu'est-ce qui vous rend unique ou caractérise vos services ?"
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[70px] resize-y"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[70px] resize-y"
                             />
                           </div>
 
@@ -1379,7 +1379,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.brandWords || ''}
                               onChange={(e) => handleInputChange('brandWords', e.target.value)}
                               placeholder="Ex: Dynamique, Professionnel, Innovant..."
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none disabled:opacity-30"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none disabled:opacity-30"
                             />
                             <label className={`flex items-center gap-2.5 p-2 rounded-lg border border-transparent transition-all cursor-pointer ${formData.brandWordsSuggestion ? 'text-[#1d9878]' : 'text-white/40 hover:text-white/60'}`}>
                               <input 
@@ -1450,7 +1450,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.objectivesOther || ''}
                               onChange={(e) => handleInputChange('objectivesOther', e.target.value)}
                               placeholder="Autre objectif, précisez... (Facultatif)"
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none mt-1"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none mt-1"
                             />
                           </div>
 
@@ -1461,7 +1461,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.idealResult || ''}
                               onChange={(e) => handleInputChange('idealResult', e.target.value)}
                               placeholder="Ex: atteindre 5000 abonnés qualifiés, doubler nos prises de contact mensuelles..."
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y"
                             />
                           </div>
 
@@ -1472,7 +1472,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.targetAudience || ''}
                               onChange={(e) => handleInputChange('targetAudience', e.target.value)}
                               placeholder="Ex: Femmes de 25-45 ans résidant à Rabat, intéressées par le bien-être..."
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y"
                             />
                           </div>
                         </div>
@@ -1509,7 +1509,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.socialMediaOther || ''}
                               onChange={(e) => handleInputChange('socialMediaOther', e.target.value)}
                               placeholder="Autre réseau, précisez... (Facultatif)"
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none mt-1"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none mt-1"
                             />
                           </div>
 
@@ -1547,7 +1547,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                   value={formData.activeAccountsLinks || ''}
                                   onChange={(e) => handleInputChange('activeAccountsLinks', e.target.value)}
                                   placeholder="Ex: https://instagram.com/nom, https://facebook.com/nom, nombre d'abonnés..."
-                                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y"
+                                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y"
                                 />
                               </div>
                             )}
@@ -1611,7 +1611,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.formatsOther || ''}
                               onChange={(e) => handleInputChange('formatsOther', e.target.value)}
                               placeholder="Autre format, précisez... (Facultatif)"
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none mt-1"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none mt-1"
                             />
                           </div>
                         </div>
@@ -1651,7 +1651,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.editorialStyleOther || ''}
                               onChange={(e) => handleInputChange('editorialStyleOther', e.target.value)}
                               placeholder="Autre style, précisez... (Facultatif)"
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none mt-1"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none mt-1"
                             />
                           </div>
 
@@ -1661,7 +1661,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.avoidTopics || ''}
                               onChange={(e) => handleInputChange('avoidTopics', e.target.value)}
                               placeholder="Concurrents, expressions particulières, visuels non désirés..."
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y"
                             />
                           </div>
 
@@ -1744,7 +1744,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 <select
                                   value={formData.postsCountPhotos ?? 0}
                                   onChange={(e) => handleInputChange('postsCountPhotos', Number(e.target.value))}
-                                  className="w-full bg-[#0a1526] border border-white/10 rounded-xl px-3 py-2 text-white text-xs max-md:text-[16px] focus:border-[#1d9878] focus:outline-none cursor-pointer"
+                                  className="w-full bg-[#0a1526] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:border-[#1d9878] focus:outline-none cursor-pointer"
                                 >
                                   {Array.from({ length: 71 }, (_, i) => i).map(num => (
                                     <option key={`photo-${num}`} value={num} className="bg-[#0a1526] text-white">{num}</option>
@@ -1757,7 +1757,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 <select
                                   value={formData.postsCountVideos ?? 0}
                                   onChange={(e) => handleInputChange('postsCountVideos', Number(e.target.value))}
-                                  className="w-full bg-[#0a1526] border border-white/10 rounded-xl px-3 py-2 text-white text-xs max-md:text-[16px] focus:border-[#1d9878] focus:outline-none cursor-pointer"
+                                  className="w-full bg-[#0a1526] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:border-[#1d9878] focus:outline-none cursor-pointer"
                                 >
                                   {Array.from({ length: 71 }, (_, i) => i).map(num => (
                                     <option key={`video-${num}`} value={num} className="bg-[#0a1526] text-white">{num}</option>
@@ -1770,7 +1770,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 <select
                                   value={formData.postsCountStories ?? 0}
                                   onChange={(e) => handleInputChange('postsCountStories', Number(e.target.value))}
-                                  className="w-full bg-[#0a1526] border border-white/10 rounded-xl px-3 py-2 text-white text-xs max-md:text-[16px] focus:border-[#1d9878] focus:outline-none cursor-pointer"
+                                  className="w-full bg-[#0a1526] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:border-[#1d9878] focus:outline-none cursor-pointer"
                                 >
                                   {Array.from({ length: 71 }, (_, i) => i).map(num => (
                                     <option key={`story-${num}`} value={num} className="bg-[#0a1526] text-white">{num}</option>
@@ -1785,7 +1785,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 value={formData.scheduleNotes || ''}
                                 onChange={(e) => handleInputChange('scheduleNotes', e.target.value)}
                                 placeholder="Jours/heures souhaités, événements clés, promotions, Ramadan..."
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[45px] resize-y"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[45px] resize-y"
                               />
                             </div>
                           </div>
@@ -1910,7 +1910,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 value={formData.clientName || ''}
                                 onChange={(e) => handleInputChange('clientName', e.target.value)}
                                 placeholder="Votre nom"
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
                               />
                             </div>
                             <div className="flex flex-col gap-1.5">
@@ -1919,7 +1919,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 required
                                 value={formData.companyPosition || ''}
                                 onChange={(e) => handleInputChange('companyPosition', e.target.value)}
-                                className="w-full bg-[#0a1526] border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] focus:border-[#1d9878] focus:outline-none cursor-pointer"
+                                className="w-full bg-[#0a1526] border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs focus:border-[#1d9878] focus:outline-none cursor-pointer"
                               >
                                 <option value="" disabled className="text-white/40">Sélectionnez votre position...</option>
                                 {POSITIONS.map(pos => (
@@ -1938,7 +1938,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 value={formData.clientEmail || ''}
                                 onChange={(e) => handleInputChange('clientEmail', e.target.value)}
                                 placeholder="Votre e-mail"
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
                               />
                             </div>
                             <div className="flex flex-col gap-1.5">
@@ -1949,7 +1949,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 value={formData.clientPhone || ''}
                                 onChange={(e) => handleInputChange('clientPhone', e.target.value)}
                                 placeholder="Ex: +212 600-000000"
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
                               />
                             </div>
                           </div>
@@ -1987,7 +1987,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               value={formData.comments || ''}
                               onChange={(e) => handleInputChange('comments', e.target.value)}
                               placeholder="Ajoutez toute précision utile..."
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[50px] resize-y"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[50px] resize-y"
                             />
                           </div>
                         </div>
