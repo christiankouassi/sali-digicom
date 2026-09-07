@@ -29,7 +29,21 @@ const POSITIONS = [
 export default function QuestionnaireFlow({ type, initialContactInfo, onClose, onSuccess }: QuestionnaireFlowProps) {
   const [activeType, setActiveType] = useState<'website' | 'community'>(type);
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<any>({});
+  const [formData, setFormData] = useState<any>(() => ({
+    clientName: initialContactInfo?.name || '',
+    clientEmail: initialContactInfo?.email || '',
+    clientPhone: initialContactInfo?.phone || '',
+    companyInfo: initialContactInfo?.company || '',
+    companyName: initialContactInfo?.company || '',
+    companyActivity: '',
+    companyCountry: '',
+    companyPosition: '',
+    comments: (initialContactInfo as any)?.message || '',
+    whatsapp: true,
+    postsCountPhotos: 0,
+    postsCountVideos: 0,
+    postsCountStories: 0
+  }));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -40,32 +54,6 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
   const [surveyFeedback, setSurveyFeedback] = useState<string>('');
   const [isSubmittingSurvey, setIsSubmittingSurvey] = useState<boolean>(false);
   const [surveySent, setSurveySent] = useState<boolean>(false);
-
-  // Reset form state on open or type change
-  useEffect(() => {
-    setActiveType(type);
-    setCurrentStep(0);
-    setFormData({
-      clientName: initialContactInfo?.name || '',
-      clientEmail: initialContactInfo?.email || '',
-      clientPhone: initialContactInfo?.phone || '',
-      companyInfo: initialContactInfo?.company || '',
-      companyName: initialContactInfo?.company || '',
-      companyActivity: '',
-      companyCountry: '',
-      companyPosition: '',
-      comments: (initialContactInfo as any)?.message || '',
-      whatsapp: true,
-      postsCountPhotos: 0,
-      postsCountVideos: 0,
-      postsCountStories: 0
-    });
-    setSubmitStatus('idle');
-    setIsSubmitting(false);
-    setValidationError(null);
-    setSurveySent(false);
-    setSurveyFeedback('');
-  }, [type, initialContactInfo]);
 
   // Scroll to top on step changes
   useEffect(() => {
@@ -104,14 +92,20 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
   };
 
   const handleCheckboxChange = (field: string, value: string, checked: boolean) => {
-    const currentValues = formData[field] || [];
-    let newValues = [...currentValues];
-    if (checked) {
-      if (!newValues.includes(value)) newValues.push(value);
-    } else {
-      newValues = newValues.filter((val: string) => val !== value);
-    }
-    handleInputChange(field, newValues);
+    setFormData((prev: any) => {
+      const currentValues = prev[field] || [];
+      let newValues = [...currentValues];
+      if (checked) {
+        if (!newValues.includes(value)) newValues.push(value);
+      } else {
+        newValues = newValues.filter((val: string) => val !== value);
+      }
+      return {
+        ...prev,
+        [field]: newValues
+      };
+    });
+    setValidationError(null);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

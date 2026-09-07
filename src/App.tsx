@@ -1479,14 +1479,9 @@ export default function App() {
           >
             <div className="min-h-full w-full flex items-center justify-center p-0 md:p-6 lg:p-12">
               <QuestionnaireFlow 
+                key={activeQuestionnaire}
                 type={activeQuestionnaire}
-                initialContactInfo={{
-                  name: prefilledContactInfo?.name || '',
-                  email: prefilledContactInfo?.email || '',
-                  phone: prefilledContactInfo?.phone || '',
-                  company: prefilledContactInfo?.company || '',
-                  message: prefilledContactInfo?.message || ''
-                }}
+                initialContactInfo={prefilledContactInfo}
                 onClose={() => setActiveQuestionnaire(null)}
                 onSuccess={() => {
                   setIsContactSubmitted(true);
