@@ -30,7 +30,15 @@ $clientInfo = isset($data['clientInfo']) ? $data['clientInfo'] : null;
 $responses = isset($data['responses']) ? $data['responses'] : [];
 
 // Basic validation
-if ($formType === 'website' || $formType === 'community') {
+if ($formType === 'satisfaction') {
+    $clientName = !empty($data['clientName']) ? strip_tags($data['clientName']) : 'Anonyme';
+    $clientEmail = !empty($data['clientEmail']) ? filter_var($data['clientEmail'], FILTER_VALIDATE_EMAIL) : 'contact@sali-digicom.com';
+    if (!$clientEmail) $clientEmail = 'contact@sali-digicom.com';
+    $simplicityRating = isset($data['simplicityRating']) ? (int)$data['simplicityRating'] : 8;
+    $coherenceRating = isset($data['coherenceRating']) ? (int)$data['coherenceRating'] : 8;
+    $feedback = !empty($data['feedback']) ? htmlspecialchars($data['feedback']) : 'Aucun commentaire fourni.';
+    $questionnaireType = (isset($data['questionnaireType']) && $data['questionnaireType'] === 'website') ? 'Création de Site Web' : 'Community Management';
+} elseif ($formType === 'website' || $formType === 'community') {
     if (!$clientInfo || empty($clientInfo['email']) || empty($clientInfo['name'])) {
         http_response_code(400);
         echo json_encode(["error" => "Le nom et l'adresse e-mail sont obligatoires."]);
@@ -66,7 +74,53 @@ $now = date('d/m/Y H:i:s');
 $emailTitle = "";
 $emailHtml = "";
 
-if ($formType === 'website' || $formType === 'community') {
+if ($formType === 'satisfaction') {
+    $emailTitle = "Enquête de satisfaction (" . $questionnaireType . ") - Notes: " . $simplicityRating . "/10 & " . $coherenceRating . "/10";
+    $emailHtml = '
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #d3dfed; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div style="background-color: #1c2c46; padding: 20px; text-align: center; border-bottom: 3px solid #1d9878;">
+          <h2 style="color: #ffffff; margin: 0; font-size: 20px;">SALI DigiCom</h2>
+          <p style="color: #1d9878; margin: 5px 0 0 0; font-weight: bold; font-size: 14px;">Enquête de Satisfaction Client</p>
+        </div>
+        <div style="padding: 24px; background-color: #ffffff;">
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold; color: #4a5568; width: 45%;">Questionnaire complété :</td>
+              <td style="padding: 8px 0; color: #1a202c;">' . $questionnaireType . '</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">Nom du prospect :</td>
+              <td style="padding: 8px 0; color: #1a202c;">' . $clientName . '</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">E-mail :</td>
+              <td style="padding: 8px 0; color: #1a202c;"><a href="mailto:' . $clientEmail . '">' . $clientEmail . '</a></td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">Facilité à remplir :</td>
+              <td style="padding: 8px 0; color: #1d9878; font-weight: bold; font-size: 15px;">' . $simplicityRating . ' / 10</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">Cohérence des questions :</td>
+              <td style="padding: 8px 0; color: #1d9878; font-weight: bold; font-size: 15px;">' . $coherenceRating . ' / 10</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">Date de soumission :</td>
+              <td style="padding: 8px 0; color: #718096; font-size: 12px;">' . $now . '</td>
+            </tr>
+          </table>
+
+          <h3 style="color: #1c2c46; border-bottom: 1px solid #ebf1f8; padding-bottom: 8px; margin-top: 0;">Commentaires / Recommandations :</h3>
+          <div style="padding: 15px; background-color: #f7fafc; border-radius: 6px; color: #2d3748; line-height: 1.6; white-space: pre-line; border-left: 3px solid #1d9878;">
+            ' . nl2br($feedback) . '
+          </div>
+        </div>
+        <div style="background-color: #f7fafc; padding: 15px; text-align: center; font-size: 11px; color: #a0aec0; border-top: 1px solid #e2e8f0;">
+          Cet e-mail a été généré automatiquement depuis l\'enquête de satisfaction de SALI DigiCom.
+        </div>
+      </div>
+    ';
+} elseif ($formType === 'website' || $formType === 'community') {
     $emailTitle = ($formType === 'website') 
         ? "Nouveau Questionnaire - Création de Site Web (SALI DigiCom)" 
         : "Nouveau Questionnaire - Community Management (SALI DigiCom)";

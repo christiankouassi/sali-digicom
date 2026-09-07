@@ -15,13 +15,13 @@ const RECIPIENT_EMAIL = process.env.FORM_RECIPIENT_EMAIL || 'contact@sali-digico
 // Enable CORS
 app.use(cors());
 
-// Limit JSON payload size to prevent DOS
-app.use(express.json({ limit: '100kb' }));
+// Limit JSON payload size to support file attachments up to 25MB (base64 encoded)
+app.use(express.json({ limit: '70mb' }));
 
-// Set up rate limiting to prevent spam (max 5 submissions per IP every 15 minutes)
+// Set up rate limiting to prevent spam (max 10 submissions per IP every 15 minutes)
 const emailRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 10,
   message: { error: 'Trop de requêtes. Veuillez réessayer dans 15 minutes.' }
 });
 
@@ -37,10 +37,12 @@ app.post('/api/send-email', async (req, res) => {
   const { formType, clientInfo, responses, company, message } = req.body;
 
   // Basic validation
-  if (!clientInfo || !clientInfo.email || !clientInfo.name) {
-    // Check if it's the standard contact form which has a flattened structure
-    if (!req.body.email || !req.body.name) {
-      return res.status(400).json({ error: 'Le nom et l\'adresse e-mail sont obligatoires.' });
+  if (formType !== 'satisfaction') {
+    if (!clientInfo || !clientInfo.email || !clientInfo.name) {
+      // Check if it's the standard contact form which has a flattened structure
+      if (!req.body.email || !req.body.name) {
+        return res.status(400).json({ error: 'Le nom et l\'adresse e-mail sont obligatoires.' });
+      }
     }
   }
 
@@ -55,7 +57,60 @@ app.post('/api/send-email', async (req, res) => {
 
   const now = new Date().toLocaleString('fr-FR', { timeZone: 'UTC' });
 
-  if (formType === 'website' || formType === 'community') {
+  if (formType === 'satisfaction') {
+    clientName = req.body.clientName || 'Anonyme';
+    clientEmail = req.body.clientEmail || 'Non renseigné';
+    const questionnaireType = req.body.questionnaireType === 'website' ? 'Création de Site Web' : 'Community Management';
+    const simplicityRating = req.body.simplicityRating || 'N/A';
+    const coherenceRating = req.body.coherenceRating || 'N/A';
+    const feedback = req.body.feedback || 'Aucun commentaire fourni.';
+
+    emailTitle = `Enquête de satisfaction (${questionnaireType}) - Notes: ${simplicityRating}/10 & ${coherenceRating}/10`;
+    emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #d3dfed; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div style="background-color: #1c2c46; padding: 20px; text-align: center; border-bottom: 3px solid #1d9878;">
+          <h2 style="color: #ffffff; margin: 0; font-size: 20px;">SALI DigiCom</h2>
+          <p style="color: #1d9878; margin: 5px 0 0 0; font-weight: bold; font-size: 14px;">Enquête de Satisfaction Client</p>
+        </div>
+        <div style="padding: 24px; background-color: #ffffff;">
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold; color: #4a5568; width: 45%;">Questionnaire complété :</td>
+              <td style="padding: 8px 0; color: #1a202c;">${questionnaireType}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">Nom du prospect :</td>
+              <td style="padding: 8px 0; color: #1a202c;">${clientName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">E-mail :</td>
+              <td style="padding: 8px 0; color: #1a202c;"><a href="mailto:${clientEmail}">${clientEmail}</a></td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">Facilité à remplir :</td>
+              <td style="padding: 8px 0; color: #1d9878; font-weight: bold; font-size: 15px;">${simplicityRating} / 10</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">Cohérence des questions :</td>
+              <td style="padding: 8px 0; color: #1d9878; font-weight: bold; font-size: 15px;">${coherenceRating} / 10</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">Date de soumission :</td>
+              <td style="padding: 8px 0; color: #718096; font-size: 12px;">${now} (UTC)</td>
+            </tr>
+          </table>
+
+          <h3 style="color: #1c2c46; border-bottom: 1px solid #ebf1f8; padding-bottom: 8px; margin-top: 0;">Commentaires / Recommandations :</h3>
+          <div style="padding: 15px; background-color: #f7fafc; border-radius: 6px; color: #2d3748; line-height: 1.6; white-space: pre-line; border-left: 3px solid #1d9878;">
+            ${feedback}
+          </div>
+        </div>
+        <div style="background-color: #f7fafc; padding: 15px; text-align: center; font-size: 11px; color: #a0aec0; border-top: 1px solid #e2e8f0;">
+          Cet e-mail a été généré automatiquement depuis l'enquête de satisfaction de SALI DigiCom.
+        </div>
+      </div>
+    `;
+  } else if (formType === 'website' || formType === 'community') {
     clientName = clientInfo.name;
     clientEmail = clientInfo.email;
     clientPhone = clientInfo.phone || 'Non renseigné';

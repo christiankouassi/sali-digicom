@@ -14,28 +14,58 @@ interface QuestionnaireFlowProps {
   onSuccess?: () => void;
 }
 
+const POSITIONS = [
+  "Fondateur",
+  "Directeur Général",
+  "Directeur de pôle",
+  "Directeur Marketing",
+  "Management (autre)",
+  "Chargé de marketing",
+  "Commercial",
+  "Secrétariat",
+  "Autre"
+];
+
 export default function QuestionnaireFlow({ type, initialContactInfo, onClose, onSuccess }: QuestionnaireFlowProps) {
+  const [activeType, setActiveType] = useState<'website' | 'community'>(type);
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  // Reset form state on open
+  // Satisfaction survey states
+  const [simplicityRating, setSimplicityRating] = useState<number>(8);
+  const [coherenceRating, setCoherenceRating] = useState<number>(8);
+  const [surveyFeedback, setSurveyFeedback] = useState<string>('');
+  const [isSubmittingSurvey, setIsSubmittingSurvey] = useState<boolean>(false);
+  const [surveySent, setSurveySent] = useState<boolean>(false);
+
+  // Reset form state on open or type change
   useEffect(() => {
+    setActiveType(type);
     setCurrentStep(0);
     setFormData({
       clientName: initialContactInfo?.name || '',
       clientEmail: initialContactInfo?.email || '',
       clientPhone: initialContactInfo?.phone || '',
       companyInfo: initialContactInfo?.company || '',
-      comments: initialContactInfo?.message || '',
-      whatsapp: true
+      companyName: initialContactInfo?.company || '',
+      companyActivity: '',
+      companyCountry: '',
+      companyPosition: '',
+      comments: (initialContactInfo as any)?.message || '',
+      whatsapp: true,
+      postsCountPhotos: 0,
+      postsCountVideos: 0,
+      postsCountStories: 0
     });
     setSubmitStatus('idle');
     setIsSubmitting(false);
     setValidationError(null);
-  }, [type]);
+    setSurveySent(false);
+    setSurveyFeedback('');
+  }, [type, initialContactInfo]);
 
   // Scroll to top on step changes
   useEffect(() => {
@@ -45,7 +75,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
     }
   }, [currentStep]);
 
-  const isWebsite = type === 'website';
+  const isWebsite = activeType === 'website';
 
   // Config steps
   const steps = isWebsite 
@@ -98,8 +128,8 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
     }
 
     fileList.forEach(file => {
-      if (file.size > 5 * 1024 * 1024) {
-        setValidationError(`Le fichier "${file.name}" est trop volumineux. La taille maximale autorisée est de 5 Mo.`);
+      if (file.size > 25 * 1024 * 1024) {
+        setValidationError(`Le fichier "${file.name}" est trop volumineux. La taille maximale autorisée est de 25 Mo.`);
         return;
       }
 
@@ -173,7 +203,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
           return false;
         }
         if ((!formData.features || formData.features.length === 0) && !formData.featuresOther?.trim()) {
-          setValidationError("Veuillez cocher au moins une fonctionnalité ou préciser vos besoins.");
+          setValidationError("Veuillez cocher au moins une fonctionnalité ou choisir 'Aucune de celles-ci'.");
           return false;
         }
         if ((!formData.languagesSelected || formData.languagesSelected.length === 0) && !formData.languagesOther?.trim()) {
@@ -210,6 +240,10 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
           setValidationError("Veuillez renseigner votre nom complet.");
           return false;
         }
+        if (!formData.companyPosition?.trim()) {
+          setValidationError("Veuillez sélectionner votre position dans l'entreprise.");
+          return false;
+        }
         if (!formData.clientEmail?.trim() || !/\S+@\S+\.\S+/.test(formData.clientEmail)) {
           setValidationError("Veuillez renseigner une adresse e-mail valide.");
           return false;
@@ -226,22 +260,48 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
     } else {
       // Community Management validations
       if (currentStep === 0) {
-        if (!formData.companyInfo?.trim()) {
-          setValidationError("Veuillez renseigner les informations sur votre marque.");
+        if (!formData.companyName?.trim()) {
+          setValidationError("Veuillez renseigner le nom de la marque ou société.");
           return false;
         }
-        if (!formData.values?.trim()) {
-          setValidationError("Veuillez renseigner vos valeurs ou éléments différenciants.");
+        if (!formData.companyActivity?.trim()) {
+          setValidationError("Veuillez renseigner l'activité ou les activités de votre marque/société.");
           return false;
         }
       }
       if (currentStep === 1) {
+        if ((!formData.objectives || formData.objectives.length === 0) && !formData.objectivesOther?.trim()) {
+          setValidationError("Veuillez sélectionner au moins un objectif principal ou 'Aucun de ces objectifs'.");
+          return false;
+        }
         if (!formData.idealResult?.trim()) {
           setValidationError("Veuillez décrire le résultat idéal de notre accompagnement.");
           return false;
         }
         if (!formData.targetAudience?.trim()) {
           setValidationError("Veuillez décrire votre client idéal.");
+          return false;
+        }
+      }
+      if (currentStep === 2) {
+        if ((!formData.socialMedia || formData.socialMedia.length === 0) && !formData.socialMediaOther?.trim()) {
+          setValidationError("Veuillez sélectionner les réseaux sociaux sur lesquels vous souhaitez solliciter nos services.");
+          return false;
+        }
+        if (!formData.hasActiveAccounts) {
+          setValidationError("Veuillez indiquer si vous possédez déjà des comptes actifs.");
+          return false;
+        }
+        if (formData.hasActiveAccounts === 'oui' && !formData.activeAccountsLinks?.trim()) {
+          setValidationError("Veuillez indiquer les liens de vos pages existantes.");
+          return false;
+        }
+        if (!formData.existingContentChoice) {
+          setValidationError("Veuillez indiquer si vous disposez déjà de contenu.");
+          return false;
+        }
+        if ((!formData.formats || formData.formats.length === 0) && !formData.formatsOther?.trim()) {
+          setValidationError("Veuillez choisir au moins un format de publication souhaité.");
           return false;
         }
       }
@@ -256,8 +316,15 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
         }
       }
       if (currentStep === 4) {
-        if (formData.useAds === undefined) {
-          setValidationError("Veuillez indiquer si vous souhaitez utiliser la publicité.");
+        const photosCount = Number(formData.postsCountPhotos ?? 0);
+        const videosCount = Number(formData.postsCountVideos ?? 0);
+        const storiesCount = Number(formData.postsCountStories ?? 0);
+        if (photosCount === 0 && videosCount === 0 && storiesCount === 0) {
+          setValidationError("Veuillez sélectionner le nombre de publications par mois souhaitées (Photos, Vidéos ou Stories).");
+          return false;
+        }
+        if (!formData.useAds) {
+          setValidationError("Veuillez indiquer si vous souhaitez utiliser la publicité (Meta / Google).");
           return false;
         }
         if (formData.hasSite === undefined) {
@@ -266,6 +333,10 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
         }
         if (!formData.clientName?.trim()) {
           setValidationError("Veuillez renseigner votre nom complet.");
+          return false;
+        }
+        if (!formData.companyPosition?.trim()) {
+          setValidationError("Veuillez sélectionner votre position dans l'entreprise.");
           return false;
         }
         if (!formData.clientEmail?.trim() || !/\S+@\S+\.\S+/.test(formData.clientEmail)) {
@@ -308,7 +379,10 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
       name: formData.clientName,
       email: formData.clientEmail,
       phone: formData.clientPhone,
-      company: initialContactInfo?.company || formData.companyInfo || '',
+      company: isWebsite 
+        ? (initialContactInfo?.company || formData.companyInfo || '')
+        : (formData.companyName || ''),
+      position: formData.companyPosition || 'Non renseigné',
       whatsapp: formData.whatsapp ? 'Oui' : 'Non'
     };
 
@@ -336,50 +410,54 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
         { category: '04 DOMAINE, HÉBERGEMENT & MAINTENANCE', question: 'Maintenance et hébergement', answer: formData.hostingMaintenance },
         
         { category: '05 PLANNING & VALIDATION', question: 'Échéance de mise en ligne précise ?', answer: formData.deadline },
-        { category: '06 REMARQUES / AUTRES COMMENTAIRES', question: 'Remarques / Autres commentaires', answer: formData.comments }
+        { category: '05 PLANNING & VALIDATION', question: 'Position dans l\'entreprise', answer: formData.companyPosition || 'Non renseigné' },
+        { category: '06 REMARQUES / AUTRES COMMENTAIRES', question: 'Notes / Remarques', answer: formData.comments || '' }
       ];
     } else {
       responses = [
-        { category: '01 VOTRE MARQUE', question: 'Nom de l\'entreprise, activité, produits / services et zone géographique ciblée ?', answer: formData.companyInfo },
-        { category: '01 VOTRE MARQUE', question: 'Quelles sont vos valeurs ou vos éléments différenciants ?', answer: formData.values },
-        { category: '01 VOTRE MARQUE', question: 'Quels sont les 3 mots qui doivent définir votre marque sur les réseaux sociaux ?', answer: formData.brandWordsSuggestion ? 'Suggestions demandées' : formData.brandWords },
+        { category: '01 VOTRE MARQUE', question: 'Nom de la marque / société', answer: formData.companyName },
+        { category: '01 VOTRE MARQUE', question: 'Activité(s)', answer: formData.companyActivity },
+        { category: '01 VOTRE MARQUE', question: 'Pays d\'activité', answer: formData.companyCountry || 'Non renseigné' },
+        { category: '01 VOTRE MARQUE', question: 'Quelles sont vos valeurs ou vos éléments différenciants ?', answer: formData.values || 'Non renseigné' },
+        { category: '01 VOTRE MARQUE', question: 'Quels sont les 3 mots qui doivent définir votre marque sur les réseaux sociaux ?', answer: formData.brandWordsSuggestion ? 'Suggestions demandées' : (formData.brandWords || 'Non spécifié') },
         
-        { category: '02 VOS OBJECTIFS', question: 'Vos objectifs', answer: [...(formData.objectives || []), formData.objectivesOther ? `Autre: ${formData.objectivesOther}` : ''].filter(Boolean) },
-        { category: '02 VOS OBJECTIFS', question: 'Quel serait pour vous le résultat idéal de notre accompagnement dans les prochains mois ?', answer: formData.idealResult },
-        
-        { category: '03 VOTRE AUDIENCE', question: 'Qui est votre client idéal ?', answer: formData.targetAudience },
+        { category: '02 VOS OBJECTIFS & VOTRE AUDIENCE', question: 'Vos objectifs', answer: [...(formData.objectives || []), formData.objectivesOther ? `Autre: ${formData.objectivesOther}` : ''].filter(Boolean) },
+        { category: '02 VOS OBJECTIFS & VOTRE AUDIENCE', question: 'Quel serait pour vous le résultat idéal de notre accompagnement dans les prochains mois ?', answer: formData.idealResult },
+        { category: '02 VOS OBJECTIFS & VOTRE AUDIENCE', question: 'Qui est votre client idéal ?', answer: formData.targetAudience },
 
-        { category: '04 VOS RÉSEAUX SOCIAUX', question: 'Réseaux sociaux à développer', answer: [...(formData.socialMedia || []), formData.socialMediaOther ? `Autre: ${formData.socialMediaOther}` : ''].filter(Boolean) },
-        { category: '04 VOS RÉSEAUX SOCIAUX', question: 'Avez-vous déjà des comptes actifs ? (Liens, abonnés, priorités)', answer: formData.activeAccounts },
-        
-        { category: '05 VOTRE CONTENU', question: 'Disposez-vous déjà de contenu ou faut-il tout produire ?', answer: formData.existingContent },
-        { category: '05 VOTRE CONTENU', question: 'Types de formats préférés', answer: [...(formData.formats || []), formData.formatsOther ? `Autre: ${formData.formatsOther}` : ''].filter(Boolean) },
+        { category: '03 RÉSEAUX SOCIAUX & CONTENUS', question: 'Réseaux sociaux à solliciter', answer: [...(formData.socialMedia || []), formData.socialMediaOther ? `Autre: ${formData.socialMediaOther}` : ''].filter(Boolean) },
+        { category: '03 RÉSEAUX SOCIAUX & CONTENUS', question: 'Avez-vous déjà des comptes actifs ?', answer: formData.hasActiveAccounts === 'oui' ? `Oui - Liens: ${formData.activeAccountsLinks || 'Non spécifié'}` : 'Non' },
+        { category: '03 RÉSEAUX SOCIAUX & CONTENUS', question: 'Disposez-vous déjà de contenu (photos, vidéos, témoignages) ?', answer: formData.existingContentChoice },
+        { category: '03 RÉSEAUX SOCIAUX & CONTENUS', question: 'Types de formats préférés', answer: [...(formData.formats || []), formData.formatsOther ? `Autre: ${formData.formatsOther}` : ''].filter(Boolean) },
 
-        { category: '06 IDENTITÉ VISUELLE', question: 'Identité visuelle (devis logo/charte)', answer: formData.visualIdentity },
+        { category: '04 LIGNE ÉDITORIALE & IDENTITÉ VISUELLE', question: 'Ligne éditoriale (style)', answer: [...(formData.editorialStyle || []), formData.editorialStyleOther ? `Autre: ${formData.editorialStyleOther}` : ''].filter(Boolean) },
+        { category: '04 LIGNE ÉDITORIALE & IDENTITÉ VISUELLE', question: 'Sujets, mots, visuels ou pratiques à éviter absolument ?', answer: formData.avoidTopics || 'Aucun' },
+        { category: '04 LIGNE ÉDITORIALE & IDENTITÉ VISUELLE', question: 'Identité visuelle (devis logo/charte)', answer: formData.visualIdentity },
 
-        { category: '07 VOTRE LIGNE ÉDITORIALE', question: 'Ligne éditoriale (style)', answer: [...(formData.editorialStyle || []), formData.editorialStyleOther ? `Autre: ${formData.editorialStyleOther}` : ''].filter(Boolean) },
-        { category: '07 VOTRE LIGNE ÉDITORIALE', question: 'Sujets, mots, visuels ou pratiques à éviter absolument ?', answer: formData.avoidTopics },
-
-        { category: '08 ORGANISATION', question: 'Fréquence, jours/heures, dates clés', answer: formData.scheduleNotes },
-        { category: '08 ORGANISATION', question: 'Souhaitez-vous que nous gérions les commentaires et messages privés ?', answer: formData.manageComments ? 'Oui' : 'Non' },
-
-        // Campaign & Site
-        { category: '09 CAMPAGNES & PERFORMANCE', question: 'Souhaitez-vous utiliser la publicité (Meta / Google) ?', answer: formData.useAds ? `Oui - Budget/détails: ${formData.adsDetails || 'Non spécifié'}` : 'Non', },
-        { category: '10 VOTRE SITE WEB', question: 'Disposez-vous déjà d\'un site web ?', answer: formData.hasSite ? `Oui - Lien: ${formData.siteUrl || 'Non renseigné'}` : `Non - Devis souhaité: ${formData.wantSiteQuote ? 'Oui' : 'Non'}` },
-        { category: '11 AUTRES DEMANDES / COMMENTAIRES', question: 'Message initial / Remarques', answer: formData.comments || '' }
+        { category: '05 ORGANISATION, BUDGET & VALIDATION', question: 'Nombre de publications par mois souhaitées', answer: `Photos: ${formData.postsCountPhotos ?? 0} | Vidéos: ${formData.postsCountVideos ?? 0} | Story: ${formData.postsCountStories ?? 0}` },
+        { category: '05 ORGANISATION, BUDGET & VALIDATION', question: 'Souhaitez-vous utiliser la publicité (Meta / Google) ?', answer: formData.useAds === 'oui' ? `Oui - Budget/détails: ${formData.adsDetails || 'Non spécifié'}` : formData.useAds === 'nsp' ? 'Je ne sais pas' : 'Non' },
+        { category: '05 ORGANISATION, BUDGET & VALIDATION', question: 'Disposez-vous déjà d\'un site web ?', answer: formData.hasSite ? `Oui - Lien: ${formData.siteUrl || 'Non renseigné'}` : `Non - Devis souhaité: ${formData.wantSiteQuote ? 'Oui' : 'Non'}` },
+        { category: '05 ORGANISATION, BUDGET & VALIDATION', question: 'Position dans l\'entreprise', answer: formData.companyPosition || 'Non renseigné' },
+        { category: '05 ORGANISATION, BUDGET & VALIDATION', question: 'Notes / Remarques', answer: formData.comments || '' }
       ];
     }
 
     try {
       const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const endpoint = isLocal ? '/api/send-email' : '/api/send-email.php';
+      const isNetlify = window.location.hostname.includes('netlify.app');
+      const endpoint = isLocal 
+        ? '/api/send-email' 
+        : isNetlify 
+          ? '/.netlify/functions/send-email' 
+          : '/api/send-email.php';
+
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          formType: type,
+          formType: activeType,
           clientInfo,
           responses,
           graphicCharterFiles: formData.graphicCharterFiles,
@@ -398,6 +476,49 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSatisfactionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmittingSurvey(true);
+    try {
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const isNetlify = window.location.hostname.includes('netlify.app');
+      const endpoint = isLocal 
+        ? '/api/send-email' 
+        : isNetlify 
+          ? '/.netlify/functions/send-email' 
+          : '/api/send-email.php';
+
+      await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          formType: 'satisfaction',
+          clientInfo: {
+            name: formData.clientName || 'Client',
+            email: formData.clientEmail || '',
+            phone: formData.clientPhone || '',
+            company: formData.companyName || formData.companyInfo || '',
+            position: formData.companyPosition || 'Non renseigné'
+          },
+          survey: {
+            formName: isWebsite ? 'Création de Site Web' : 'Community Management',
+            simplicityRating,
+            coherenceRating,
+            feedback: surveyFeedback
+          }
+        })
+      });
+      setSurveySent(true);
+    } catch (err) {
+      console.error(err);
+      setSurveySent(true);
+    } finally {
+      setIsSubmittingSurvey(false);
     }
   };
 
@@ -471,18 +592,134 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
           <div className="flex-1 px-6 pt-6 pb-6 lg:p-10 flex flex-col overflow-hidden h-auto lg:h-[80vh]">
             
             {submitStatus === 'success' ? (
-              /* Success view */
-              <div className="flex-1 flex flex-col items-center justify-center text-center max-w-md mx-auto py-12">
-                <div className="w-16 h-16 bg-[#1d9878]/10 border border-[#1d9878]/25 rounded-full flex items-center justify-center text-[#1d9878] mb-6 animate-bounce">
+              /* Success view with satisfaction survey & redirect */
+              <div className="flex-1 overflow-y-auto pr-2 py-4 flex flex-col items-center text-center max-w-lg mx-auto w-full">
+                <div className="w-16 h-16 bg-[#1d9878]/10 border border-[#1d9878]/25 rounded-full flex items-center justify-center text-[#1d9878] mb-4 animate-bounce shrink-0">
                   <CheckCircle size={36} />
                 </div>
-                <h3 className="text-xl font-black text-white mb-2">Cahier des charges transmis !</h3>
-                <p className="text-[12.5px] text-white/60 leading-relaxed mb-8">
-                  Votre questionnaire a été envoyé avec succès à l'équipe SALI DigiCom. Nous allons étudier vos besoins et vous recontacter avec une proposition sous 48 heures.
+                <h3 className="text-xl font-black text-white mb-2">Demande transmise avec succès !</h3>
+                <p className="text-[12.5px] text-white/70 leading-relaxed mb-6">
+                  Votre demande a bien été envoyée. Nous vous enverrons votre devis à l'adresse mail renseignée dans les meilleurs délais. Merci pour votre intérêt.
                 </p>
+
+                {/* Conditional website redirect banner if user requested website quote in CM */}
+                {!isWebsite && formData.wantSiteQuote === true && (
+                  <div className="w-full bg-[#1d9878]/10 border border-[#1d9878]/30 rounded-2xl p-5 mb-6 text-left">
+                    <h4 className="text-sm font-bold text-white mb-1.5 flex items-center gap-2">
+                      🌐 Création de Site Web
+                    </h4>
+                    <p className="text-xs text-white/70 leading-relaxed mb-4">
+                      Vous avez indiqué souhaiter recevoir un devis pour la création d'un site web. Souhaitez-vous être redirigé vers le formulaire pour site web dès maintenant ?
+                    </p>
+                    <div className="flex flex-wrap gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveType('website');
+                          setCurrentStep(0);
+                          setSubmitStatus('idle');
+                          setSurveySent(false);
+                        }}
+                        className="bg-[#1d9878] hover:bg-[#157159] text-white font-bold uppercase tracking-[1px] text-[10px] px-5 py-2.5 rounded-full transition-all cursor-pointer shadow-lg"
+                      >
+                        Oui, remplir le formulaire Site Web
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleInputChange('wantSiteQuote', false)}
+                        className="border border-white/10 hover:bg-white/5 text-white/60 font-semibold text-[10px] px-4 py-2.5 rounded-full transition-all cursor-pointer"
+                      >
+                        Non, merci
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Satisfaction Survey */}
+                {!surveySent ? (
+                  <div className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-left mb-6">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#1d9878] mb-1">
+                      Enquête de satisfaction (Facultatif)
+                    </h4>
+                    <p className="text-[11.5px] text-white/60 mb-4 leading-relaxed">
+                      Aidez-nous à nous améliorer en remplissant le formulaire de satisfaction ci-dessous.
+                    </p>
+                    <form onSubmit={handleSatisfactionSubmit} className="space-y-4">
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex justify-between items-center">
+                          <label className="text-[10px] font-bold tracking-[1px] uppercase text-white/80">Simplicité à remplir le formulaire</label>
+                          <span className="text-xs font-bold text-[#1d9878] bg-[#1d9878]/10 px-2 py-0.5 rounded-md">{simplicityRating} / 10</span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min="1" 
+                          max="10" 
+                          value={simplicityRating} 
+                          onChange={(e) => setSimplicityRating(Number(e.target.value))}
+                          className="w-full accent-[#1d9878] cursor-pointer"
+                        />
+                        <div className="flex justify-between text-[9px] text-white/40">
+                          <span>1 (Difficile)</span>
+                          <span>10 (Très simple)</span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex justify-between items-center">
+                          <label className="text-[10px] font-bold tracking-[1px] uppercase text-white/80">Cohérence des questions</label>
+                          <span className="text-xs font-bold text-[#1d9878] bg-[#1d9878]/10 px-2 py-0.5 rounded-md">{coherenceRating} / 10</span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min="1" 
+                          max="10" 
+                          value={coherenceRating} 
+                          onChange={(e) => setCoherenceRating(Number(e.target.value))}
+                          className="w-full accent-[#1d9878] cursor-pointer"
+                        />
+                        <div className="flex justify-between text-[9px] text-white/40">
+                          <span>1 (Incohérent)</span>
+                          <span>10 (Très pertinent)</span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-bold tracking-[1px] uppercase text-white/80">Commentaires / Recommandations (Facultatif)</label>
+                        <textarea
+                          value={surveyFeedback}
+                          onChange={(e) => setSurveyFeedback(e.target.value)}
+                          placeholder="Vos remarques pour nous aider à progresser..."
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y"
+                        />
+                      </div>
+
+                      <div className="flex justify-between items-center pt-2">
+                        <button
+                          type="submit"
+                          disabled={isSubmittingSurvey}
+                          className="bg-[#1d9878] hover:bg-[#157159] text-white font-bold uppercase tracking-[1.5px] text-[9.5px] px-5 py-2.5 rounded-full transition-all cursor-pointer disabled:opacity-50"
+                        >
+                          {isSubmittingSurvey ? "Envoi..." : "Envoyer l'enquête de satisfaction"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={onClose}
+                          className="text-white/40 hover:text-white text-xs font-semibold"
+                        >
+                          Passer
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                ) : (
+                  <div className="w-full bg-[#1d9878]/10 border border-[#1d9878]/20 rounded-2xl p-4 text-center mb-6 text-xs text-[#1d9878] font-bold">
+                    ✨ Merci beaucoup pour votre retour ! Votre avis nous aide à nous améliorer.
+                  </div>
+                )}
+
                 <button 
                   onClick={onClose}
-                  className="bg-[#1d9878] hover:bg-[#157159] text-white font-bold uppercase tracking-[2px] text-[10px] px-8 py-3.5 rounded-full transition-all cursor-pointer"
+                  className="border border-white/10 hover:bg-white/5 text-white font-bold uppercase tracking-[2px] text-[10px] px-8 py-3.5 rounded-full transition-all cursor-pointer"
                 >
                   Fermer
                 </button>
@@ -546,7 +783,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                           <div className="flex flex-col gap-2">
                             <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Quel est l'objectif principal du site ? (Facultatif)</label>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                              {["Générer des demandes", "Vendre en ligne", "Permettre la prise de rendez-vous"].map(obj => {
+                              {["Visibilité en ligne", "Générer des demandes", "Vendre en ligne", "Permettre la prise de rendez-vous"].map(obj => {
                                 const isChecked = (formData.objectives || []).includes(obj);
                                 return (
                                   <label key={obj} className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
@@ -728,14 +965,25 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                           <div className="flex flex-col gap-2">
                             <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Quelles fonctionnalités sont nécessaires ? * (Réponse obligatoire)</label>
                             <div className="grid grid-cols-2 gap-2">
-                              {["Formulaire", "Prise de rendez-vous", "Catalogue", "Paiement en ligne", "Chatbot"].map(feat => {
+                              {["Formulaire", "Prise de rendez-vous", "Catalogue", "Paiement en ligne", "Chatbot", "Aucune de celles-ci"].map(feat => {
                                 const isChecked = (formData.features || []).includes(feat);
                                 return (
                                   <label key={feat} className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/50 hover:border-white/10'}`}>
                                     <input 
                                       type="checkbox"
                                       checked={isChecked}
-                                      onChange={(e) => handleCheckboxChange('features', feat, e.target.checked)}
+                                      onChange={(e) => {
+                                        if (feat === "Aucune de celles-ci") {
+                                          handleInputChange('features', e.target.checked ? ["Aucune de celles-ci"] : []);
+                                        } else {
+                                          const current = (formData.features || []).filter((f: string) => f !== "Aucune de celles-ci");
+                                          if (e.target.checked) {
+                                            handleInputChange('features', [...current, feat]);
+                                          } else {
+                                            handleInputChange('features', current.filter((f: string) => f !== feat));
+                                          }
+                                        }
+                                      }}
                                       className="sr-only"
                                     />
                                     <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${isChecked ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
@@ -988,6 +1236,23 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               />
                             </div>
                             <div className="flex flex-col gap-1.5">
+                              <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Position dans l'entreprise * (Réponse obligatoire)</label>
+                              <select
+                                required
+                                value={formData.companyPosition || ''}
+                                onChange={(e) => handleInputChange('companyPosition', e.target.value)}
+                                className="w-full bg-[#0a1526] border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] focus:border-[#1d9878] focus:outline-none cursor-pointer"
+                              >
+                                <option value="" disabled className="text-white/40">Sélectionnez votre position...</option>
+                                {POSITIONS.map(pos => (
+                                  <option key={pos} value={pos} className="bg-[#0a1526] text-white">{pos}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="flex flex-col gap-1.5">
                               <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Adresse E-mail * (Réponse obligatoire)</label>
                               <input 
                                 required
@@ -998,9 +1263,6 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
                               />
                             </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="flex flex-col gap-1.5">
                               <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Numéro de Téléphone * (Réponse obligatoire)</label>
                               <input 
@@ -1012,36 +1274,37 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
                               />
                             </div>
-                            <div className="flex flex-col gap-2">
-                              <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Joignable sur WhatsApp * (Réponse obligatoire)</label>
-                              <div className="flex gap-3">
-                                {[
-                                  { val: true, label: "Oui" },
-                                  { val: false, label: "Non" }
-                                ].map(opt => {
-                                  const isSelected = formData.whatsapp === opt.val;
-                                  return (
-                                    <label key={opt.label} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
-                                      <input 
-                                        type="radio"
-                                        name="whatsapp"
-                                        checked={isSelected}
-                                        onChange={() => handleInputChange('whatsapp', opt.val)}
-                                        className="sr-only"
-                                      />
-                                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
-                                        {isSelected && <div className="w-2 h-2 rounded-full bg-[#1d9878]" />}
-                                      </div>
-                                      <span className="text-xs font-semibold">{opt.label}</span>
-                                    </label>
-                                  );
-                                })}
-                              </div>
+                          </div>
+
+                          <div className="flex flex-col gap-2">
+                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Joignable sur WhatsApp * (Réponse obligatoire)</label>
+                            <div className="flex gap-3">
+                              {[
+                                { val: true, label: "Oui" },
+                                { val: false, label: "Non" }
+                              ].map(opt => {
+                                const isSelected = formData.whatsapp === opt.val;
+                                return (
+                                  <label key={opt.label} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
+                                    <input 
+                                      type="radio"
+                                      name="whatsapp"
+                                      checked={isSelected}
+                                      onChange={() => handleInputChange('whatsapp', opt.val)}
+                                      className="sr-only"
+                                    />
+                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
+                                      {isSelected && <div className="w-2 h-2 rounded-full bg-[#1d9878]" />}
+                                    </div>
+                                    <span className="text-xs font-semibold">{opt.label}</span>
+                                  </label>
+                                );
+                              })}
                             </div>
                           </div>
 
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Remarques / Autres commentaires (Facultatif)</label>
+                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Notes / Remarques (Facultatif)</label>
                             <textarea 
                               value={formData.comments || ''}
                               onChange={(e) => handleInputChange('comments', e.target.value)}
@@ -1062,21 +1325,45 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                         <div className="space-y-5">
                           <h4 className="text-sm font-bold uppercase tracking-wider text-[#1d9878]">01. Votre Marque</h4>
                           
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Nom de la marque / société * (Réponse obligatoire)</label>
+                              <input 
+                                required
+                                type="text"
+                                value={formData.companyName || ''}
+                                onChange={(e) => handleInputChange('companyName', e.target.value)}
+                                placeholder="Nom de votre marque ou société"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
+                              />
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Activité(s) * (Réponse obligatoire)</label>
+                              <input 
+                                required
+                                type="text"
+                                value={formData.companyActivity || ''}
+                                onChange={(e) => handleInputChange('companyActivity', e.target.value)}
+                                placeholder="Ex: Restaurant, Prêt-à-porter, Immobilier..."
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
+                              />
+                            </div>
+                          </div>
+
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Nom de la marque, activité, ville et pays d'exercice ? * (Réponse obligatoire)</label>
-                            <textarea 
-                              required
-                              value={formData.companyInfo || ''}
-                              onChange={(e) => handleInputChange('companyInfo', e.target.value)}
-                              placeholder="Nom, domaine d'activité, clients cibles et zone géographique..."
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[70px] resize-y"
+                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Pays d'activité (Facultatif)</label>
+                            <input 
+                              type="text"
+                              value={formData.companyCountry || ''}
+                              onChange={(e) => handleInputChange('companyCountry', e.target.value)}
+                              placeholder="Ex: Maroc, France, Côte d'Ivoire..."
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
                             />
                           </div>
 
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Quelles sont vos valeurs ou vos éléments différenciants ? * (Réponse obligatoire)</label>
+                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Quelles sont vos valeurs ou vos éléments différenciants ? (Facultatif)</label>
                             <textarea 
-                              required
                               value={formData.values || ''}
                               onChange={(e) => handleInputChange('values', e.target.value)}
                               placeholder="Qu'est-ce qui vous rend unique ou caractérise vos services ?"
@@ -1119,16 +1406,16 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                           <h4 className="text-sm font-bold uppercase tracking-wider text-[#1d9878]">02. Vos Objectifs & Votre Audience</h4>
                           
                           <div className="flex flex-col gap-2">
-                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Quels sont vos objectifs principaux sur les réseaux sociaux ? (Facultatif)</label>
+                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Quels sont vos objectifs principaux sur les réseaux sociaux ? * (Réponse obligatoire)</label>
                             <div className="grid grid-cols-2 gap-2">
                               {[
-                                "Développer la notoriété", 
                                 "Augmenter la visibilité", 
                                 "Développer la communauté", 
                                 "Générer des prospects", 
                                 "Augmenter les ventes", 
                                 "Fidéliser les clients", 
-                                "Renforcer l'image de marque"
+                                "Renforcer l'image de marque",
+                                "Aucun de ces objectifs"
                               ].map(obj => {
                                 const isChecked = (formData.objectives || []).includes(obj);
                                 return (
@@ -1136,7 +1423,18 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                     <input 
                                       type="checkbox"
                                       checked={isChecked}
-                                      onChange={(e) => handleCheckboxChange('objectives', obj, e.target.checked)}
+                                      onChange={(e) => {
+                                        if (obj === "Aucun de ces objectifs") {
+                                          handleInputChange('objectives', e.target.checked ? ["Aucun de ces objectifs"] : []);
+                                        } else {
+                                          const current = (formData.objectives || []).filter((o: string) => o !== "Aucun de ces objectifs");
+                                          if (e.target.checked) {
+                                            handleInputChange('objectives', [...current, obj]);
+                                          } else {
+                                            handleInputChange('objectives', current.filter((o: string) => o !== obj));
+                                          }
+                                        }
+                                      }}
                                       className="sr-only"
                                     />
                                     <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${isChecked ? 'bg-[#1d9878] border-[#1d9878]' : 'border-white/20'}`}>
@@ -1186,7 +1484,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                           <h4 className="text-sm font-bold uppercase tracking-wider text-[#1d9878]">03. Réseaux Sociaux & Contenus</h4>
                           
                           <div className="flex flex-col gap-2">
-                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Sur quels réseaux sociaux souhaitez-vous vous développer ? (Facultatif)</label>
+                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Sur quels réseaux sociaux souhaitez-vous solliciter nos services ? * (Réponse obligatoire)</label>
                             <div className="flex gap-3">
                               {["Instagram", "Facebook", "LinkedIn"].map(sm => {
                                 const isChecked = (formData.socialMedia || []).includes(sm);
@@ -1215,32 +1513,80 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                             />
                           </div>
 
-                          <div className="flex flex-col gap-1.5">
-                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Avez-vous déjà des comptes actifs ? (Liens, abonnés, priorités...) (Facultatif)</label>
-                            <textarea 
-                              value={formData.activeAccounts || ''}
-                              onChange={(e) => handleInputChange('activeAccounts', e.target.value)}
-                              placeholder="Indiquez les liens de vos pages actuelles si existantes..."
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y"
-                            />
-                          </div>
+                          <div className="flex flex-col gap-2">
+                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Avez-vous déjà des comptes actifs ? * (Réponse obligatoire)</label>
+                            <div className="flex gap-3">
+                              {[
+                                { val: 'oui', label: "Oui" },
+                                { val: 'non', label: "Non" }
+                              ].map(opt => {
+                                const isSelected = formData.hasActiveAccounts === opt.val;
+                                return (
+                                  <label key={opt.val} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
+                                    <input 
+                                      type="radio"
+                                      name="hasActiveAccounts"
+                                      checked={isSelected}
+                                      onChange={() => handleInputChange('hasActiveAccounts', opt.val)}
+                                      className="sr-only"
+                                    />
+                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
+                                      {isSelected && <div className="w-2 h-2 rounded-full bg-[#1d9878]" />}
+                                    </div>
+                                    <span className="text-xs font-semibold">{opt.label}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
 
-                          <div className="flex flex-col gap-1.5">
-                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Disposez-vous déjà de contenu (photos, vidéos, témoignages) ou faut-il tout produire ? (Facultatif)</label>
-                            <textarea 
-                              value={formData.existingContent || ''}
-                              onChange={(e) => handleInputChange('existingContent', e.target.value)}
-                              placeholder="Présentez les fichiers en votre possession ou vos besoins de captation..."
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y"
-                            />
+                            {formData.hasActiveAccounts === 'oui' && (
+                              <div className="flex flex-col gap-1.5 mt-2">
+                                <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Indiquez les liens de vos pages existantes * (Réponse obligatoire)</label>
+                                <textarea 
+                                  required
+                                  value={formData.activeAccountsLinks || ''}
+                                  onChange={(e) => handleInputChange('activeAccountsLinks', e.target.value)}
+                                  placeholder="Ex: https://instagram.com/nom, https://facebook.com/nom, nombre d'abonnés..."
+                                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[60px] resize-y"
+                                />
+                              </div>
+                            )}
                           </div>
 
                           <div className="flex flex-col gap-2">
-                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Quels types de formats préférez-vous ? (Facultatif)</label>
+                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Disposez-vous déjà de contenu (photos, vidéos, témoignages) ou faut-il tout produire ? * (Réponse obligatoire)</label>
+                            <div className="flex flex-col gap-2">
+                              {[
+                                "Oui, nous disposons déjà de l'ensemble du contenu nécessaire",
+                                "Nous avons un contenu partiel, des créations complémentaires sont nécessaires",
+                                "Non, tout le contenu est à concevoir et produire"
+                              ].map(choice => {
+                                const isSelected = formData.existingContentChoice === choice;
+                                return (
+                                  <label key={choice} className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
+                                    <input 
+                                      type="radio"
+                                      name="existingContentChoice"
+                                      checked={isSelected}
+                                      onChange={() => handleInputChange('existingContentChoice', choice)}
+                                      className="sr-only"
+                                    />
+                                    <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
+                                      {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#1d9878]" />}
+                                    </div>
+                                    <span className="text-xs font-medium leading-tight">{choice}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-2">
+                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Quels types de formats préférez-vous ? * (Réponse obligatoire)</label>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                               {[
                                 "Carrousel", "Publication statique", "Reel", "Story", 
-                                "Vidéo", "Conseils / Éducation", "Témoignages", 
+                                "Vidéo", "Conseil / Éducation", "Témoignage", 
                                 "Promotion", "Coulisses", "Actualité"
                               ].map(f => {
                                 const isChecked = (formData.formats || []).includes(f);
@@ -1386,27 +1732,76 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                         <div className="space-y-4">
                           <h4 className="text-sm font-bold uppercase tracking-wider text-[#1d9878]">05. Organisation & validation</h4>
                           
-                          <div className="flex flex-col gap-1.5">
-                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Fréquence de publication souhaitée, jours/heures, événements clés (promotions, Ramadan...) ? (Facultatif)</label>
-                            <textarea 
-                              value={formData.scheduleNotes || ''}
-                              onChange={(e) => handleInputChange('scheduleNotes', e.target.value)}
-                              placeholder="Indiquez vos besoins de rythme ou de calendrier..."
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[50px] resize-y"
-                            />
+                          {/* Publications count dropdowns */}
+                          <div className="flex flex-col gap-2">
+                            <div>
+                              <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Nombre de publications par mois souhaitées * (Réponse obligatoire)</label>
+                              <p className="text-[11px] text-white/50 mt-0.5">Indiquez le volume estimé par type de contenu (au moins 1 publication au total) :</p>
+                            </div>
+                            <div className="grid grid-cols-3 gap-3">
+                              <div className="flex flex-col gap-1">
+                                <label className="text-[9.5px] font-bold uppercase text-white/60 tracking-wider">Photos</label>
+                                <select
+                                  value={formData.postsCountPhotos ?? 0}
+                                  onChange={(e) => handleInputChange('postsCountPhotos', Number(e.target.value))}
+                                  className="w-full bg-[#0a1526] border border-white/10 rounded-xl px-3 py-2 text-white text-xs max-md:text-[16px] focus:border-[#1d9878] focus:outline-none cursor-pointer"
+                                >
+                                  {Array.from({ length: 71 }, (_, i) => i).map(num => (
+                                    <option key={`photo-${num}`} value={num} className="bg-[#0a1526] text-white">{num}</option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              <div className="flex flex-col gap-1">
+                                <label className="text-[9.5px] font-bold uppercase text-white/60 tracking-wider">Vidéos</label>
+                                <select
+                                  value={formData.postsCountVideos ?? 0}
+                                  onChange={(e) => handleInputChange('postsCountVideos', Number(e.target.value))}
+                                  className="w-full bg-[#0a1526] border border-white/10 rounded-xl px-3 py-2 text-white text-xs max-md:text-[16px] focus:border-[#1d9878] focus:outline-none cursor-pointer"
+                                >
+                                  {Array.from({ length: 71 }, (_, i) => i).map(num => (
+                                    <option key={`video-${num}`} value={num} className="bg-[#0a1526] text-white">{num}</option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              <div className="flex flex-col gap-1">
+                                <label className="text-[9.5px] font-bold uppercase text-white/60 tracking-wider">Story</label>
+                                <select
+                                  value={formData.postsCountStories ?? 0}
+                                  onChange={(e) => handleInputChange('postsCountStories', Number(e.target.value))}
+                                  className="w-full bg-[#0a1526] border border-white/10 rounded-xl px-3 py-2 text-white text-xs max-md:text-[16px] focus:border-[#1d9878] focus:outline-none cursor-pointer"
+                                >
+                                  {Array.from({ length: 71 }, (_, i) => i).map(num => (
+                                    <option key={`story-${num}`} value={num} className="bg-[#0a1526] text-white">{num}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col gap-1 mt-1">
+                              <label className="text-[9.5px] font-bold tracking-[1px] uppercase text-white/60">Précisions sur le rythme ou calendrier (Facultatif)</label>
+                              <textarea 
+                                value={formData.scheduleNotes || ''}
+                                onChange={(e) => handleInputChange('scheduleNotes', e.target.value)}
+                                placeholder="Jours/heures souhaités, événements clés, promotions, Ramadan..."
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none min-h-[45px] resize-y"
+                              />
+                            </div>
                           </div>
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="flex flex-col gap-2">
                               <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Souhaitez-vous utiliser la publicité (Meta / Google) ? * (Réponse obligatoire)</label>
-                              <div className="flex gap-3">
+                              <div className="flex gap-2">
                                 {[
-                                  { val: true, label: "Oui" },
-                                  { val: false, label: "Non" }
+                                  { val: 'oui', label: "Oui" },
+                                  { val: 'non', label: "Non" },
+                                  { val: 'nsp', label: "Je ne sais pas" }
                                 ].map(opt => {
                                   const isSelected = formData.useAds === opt.val;
                                   return (
-                                    <label key={opt.label} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
+                                    <label key={opt.val} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
                                       <input 
                                         type="radio"
                                         name="useAds"
@@ -1417,7 +1812,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                       <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
                                         {isSelected && <div className="w-2 h-2 rounded-full bg-[#1d9878]" />}
                                       </div>
-                                      <span className="text-xs font-semibold">{opt.label}</span>
+                                      <span className="text-[11px] font-semibold text-center">{opt.label}</span>
                                     </label>
                                   );
                                 })}
@@ -1452,9 +1847,9 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                           </div>
 
                           {/* Conditional sub-questions based on ads / website */}
-                          {(formData.useAds === true || formData.hasSite !== undefined) && (
+                          {(formData.useAds === 'oui' || formData.hasSite !== undefined) && (
                             <div className="space-y-3 p-3.5 bg-white/5 border border-white/5 rounded-xl">
-                              {formData.useAds === true && (
+                              {formData.useAds === 'oui' && (
                                 <div className="flex flex-col gap-1">
                                   <label className="text-[9.5px] font-bold tracking-[1px] uppercase text-white/60">Détails Publicité (Budget mensuel, campagnes passées, objectifs...) ? (Facultatif)</label>
                                   <input 
@@ -1519,6 +1914,23 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               />
                             </div>
                             <div className="flex flex-col gap-1.5">
+                              <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Position dans l'entreprise * (Réponse obligatoire)</label>
+                              <select
+                                required
+                                value={formData.companyPosition || ''}
+                                onChange={(e) => handleInputChange('companyPosition', e.target.value)}
+                                className="w-full bg-[#0a1526] border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] focus:border-[#1d9878] focus:outline-none cursor-pointer"
+                              >
+                                <option value="" disabled className="text-white/40">Sélectionnez votre position...</option>
+                                {POSITIONS.map(pos => (
+                                  <option key={pos} value={pos} className="bg-[#0a1526] text-white">{pos}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="flex flex-col gap-1.5">
                               <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Adresse E-mail * (Réponse obligatoire)</label>
                               <input 
                                 required
@@ -1529,9 +1941,6 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
                               />
                             </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="flex flex-col gap-1.5">
                               <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Numéro de Téléphone * (Réponse obligatoire)</label>
                               <input 
@@ -1543,36 +1952,37 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs max-md:text-[16px] placeholder-white/20 focus:border-[#1d9878] focus:outline-none"
                               />
                             </div>
-                            <div className="flex flex-col gap-2">
-                              <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Joignable sur WhatsApp * (Réponse obligatoire)</label>
-                              <div className="flex gap-3">
-                                {[
-                                  { val: true, label: "Oui" },
-                                  { val: false, label: "Non" }
-                                ].map(opt => {
-                                  const isSelected = formData.whatsapp === opt.val;
-                                  return (
-                                    <label key={opt.label} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
-                                      <input 
-                                        type="radio"
-                                        name="whatsapp"
-                                        checked={isSelected}
-                                        onChange={() => handleInputChange('whatsapp', opt.val)}
-                                        className="sr-only"
-                                      />
-                                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
-                                        {isSelected && <div className="w-2 h-2 rounded-full bg-[#1d9878]" />}
-                                      </div>
-                                      <span className="text-xs font-semibold">{opt.label}</span>
-                                    </label>
-                                  );
-                                })}
-                              </div>
+                          </div>
+
+                          <div className="flex flex-col gap-2">
+                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Joignable sur WhatsApp * (Réponse obligatoire)</label>
+                            <div className="flex gap-3">
+                              {[
+                                { val: true, label: "Oui" },
+                                { val: false, label: "Non" }
+                              ].map(opt => {
+                                const isSelected = formData.whatsapp === opt.val;
+                                return (
+                                  <label key={opt.label} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
+                                    <input 
+                                      type="radio"
+                                      name="whatsapp"
+                                      checked={isSelected}
+                                      onChange={() => handleInputChange('whatsapp', opt.val)}
+                                      className="sr-only"
+                                    />
+                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
+                                      {isSelected && <div className="w-2 h-2 rounded-full bg-[#1d9878]" />}
+                                    </div>
+                                    <span className="text-xs font-semibold">{opt.label}</span>
+                                  </label>
+                                );
+                              })}
                             </div>
                           </div>
 
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Message initial / Remarques (Facultatif)</label>
+                            <label className="text-[10px] font-bold tracking-[1.5px] uppercase text-white/70">Notes / Remarques (Facultatif)</label>
                             <textarea 
                               value={formData.comments || ''}
                               onChange={(e) => handleInputChange('comments', e.target.value)}
