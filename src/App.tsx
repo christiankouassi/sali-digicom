@@ -1475,9 +1475,9 @@ export default function App() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="fixed inset-0 z-[1000] w-full h-full bg-[#ebf1f8] text-[#1c2c46] overflow-y-auto flex flex-col p-2 sm:p-4 md:p-6 lg:p-8"
+            className="fixed inset-0 z-[1000] w-full h-full bg-[#ebf1f8] text-[#1c2c46] overflow-y-auto md:overflow-hidden flex items-center justify-center p-2 sm:p-4 md:p-6 lg:p-8"
           >
-            <div className="w-full flex items-center justify-center my-auto min-h-0">
+            <div className="w-full max-w-5xl h-full max-h-[92vh] md:max-h-[760px] flex items-center justify-center my-auto min-h-0">
               <QuestionnaireFlow 
                 key={activeQuestionnaire}
                 type={activeQuestionnaire}

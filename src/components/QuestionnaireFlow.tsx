@@ -528,7 +528,10 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
   
 
   return (
-    <div className="relative bg-[#1c2c46] border border-white/10 w-full max-w-5xl rounded-3xl flex flex-col md:flex-row overflow-hidden shadow-2xl h-auto md:h-[88vh] md:max-h-[820px]">
+    <div 
+      onScroll={(e) => { e.currentTarget.scrollTop = 0; }}
+      className="relative bg-[#1c2c46] border border-white/10 w-full h-full rounded-3xl flex flex-col md:flex-row overflow-hidden shadow-2xl"
+    >
           {/* Header Close button */}
           <button 
             onClick={onClose}
@@ -538,7 +541,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
           </button>
 
           {/* Left panel: Info & Progress (Desktop) */}
-          <div className="md:w-2/5 bg-[#17253b] p-6 md:p-8 lg:p-10 flex flex-col justify-between border-b md:border-b-0 md:border-r border-white/5 md:h-full shrink-0 overflow-y-auto">
+          <div className="md:w-2/5 bg-[#17253b] p-6 md:p-8 lg:p-10 flex flex-col justify-between border-b md:border-b-0 md:border-r border-white/5 h-auto md:h-full shrink-0 overflow-y-auto min-h-0">
             <div>
               <span className="text-[9px] font-bold tracking-[3px] uppercase text-[#1d9878] bg-[#1d9878]/10 border border-[#1d9878]/20 px-3.5 py-1 rounded-full mb-4 inline-block">
                 SALI DIGICOM
@@ -592,7 +595,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
           </div>
 
           {/* Right panel: Dynamic form scrolling area */}
-          <div className="flex-1 px-6 pt-6 pb-6 md:p-8 lg:p-10 flex flex-col overflow-hidden min-h-0 md:h-full">
+          <div className="flex-1 px-6 pt-6 pb-6 md:p-8 lg:p-10 flex flex-col overflow-hidden min-h-0 h-full">
             
             {submitStatus === 'success' ? (
               /* Success view with satisfaction survey & redirect */
@@ -754,7 +757,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
               </div>
             ) : (
               /* Questionnaire active view */
-              <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 h-full overflow-hidden">
                 
                 {/* Steps Questions */}
                 <div ref={questionsContainerRef} className="flex-1 overflow-y-auto pr-2 mb-3 min-h-0">
@@ -873,8 +876,13 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                         handleInputChange('hasSite', opt.val);
                                         if (opt.val === true) {
                                           setTimeout(() => {
-                                            existingSiteInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                            existingSiteInputRef.current?.focus();
+                                            if (questionsContainerRef.current) {
+                                              questionsContainerRef.current.scrollTo({
+                                                top: questionsContainerRef.current.scrollHeight,
+                                                behavior: 'smooth'
+                                              });
+                                            }
+                                            existingSiteInputRef.current?.focus({ preventScroll: true });
                                           }, 80);
                                         }
                                       }}
@@ -1848,8 +1856,13 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                           handleInputChange('hasSite', opt.val);
                                           if (opt.val === true) {
                                             setTimeout(() => {
-                                              cmSiteInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                              cmSiteInputRef.current?.focus();
+                                              if (questionsContainerRef.current) {
+                                                questionsContainerRef.current.scrollTo({
+                                                  top: questionsContainerRef.current.scrollHeight,
+                                                  behavior: 'smooth'
+                                                });
+                                              }
+                                              cmSiteInputRef.current?.focus({ preventScroll: true });
                                             }, 80);
                                           }
                                         }}
