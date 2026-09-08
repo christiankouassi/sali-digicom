@@ -16,7 +16,7 @@ $recipient_email = "contact@sali-digicom.com";
 $smtp_enabled = false; 
 $smtp_host    = "mail.infomaniak.com";
 $smtp_port    = 587; // 587 (STARTTLS) ou 465 (SSL)
-$smtp_user    = "contact@sali-digicom.com";
+$smtp_user    = "christian.kouassi@sali-digicom.com";
 $smtp_pass    = "";  // Mot de passe de la boîte e-mail Infomaniak
 
 // OPTION 2 : Fonction native mail() PHP (avec paramètre enveloppe -f pour éviter les lenteurs)

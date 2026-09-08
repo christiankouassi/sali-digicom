@@ -7,7 +7,7 @@ $cfg = file_exists($config_file) ? @include($config_file) : [];
 
 $smtp_host = !empty($_POST['smtp_host']) ? $_POST['smtp_host'] : (isset($cfg['smtp_host']) ? $cfg['smtp_host'] : 'mail.infomaniak.com');
 $smtp_port = !empty($_POST['smtp_port']) ? (int)$_POST['smtp_port'] : (isset($cfg['smtp_port']) ? (int)$cfg['smtp_port'] : 587);
-$smtp_user = !empty($_POST['smtp_user']) ? $_POST['smtp_user'] : (isset($cfg['smtp_user']) ? $cfg['smtp_user'] : 'contact@sali-digicom.com');
+$smtp_user = !empty($_POST['smtp_user']) ? $_POST['smtp_user'] : (isset($cfg['smtp_user']) ? $cfg['smtp_user'] : 'christian.kouassi@sali-digicom.com');
 $smtp_pass = isset($_POST['smtp_pass']) ? $_POST['smtp_pass'] : (isset($cfg['smtp_pass']) ? $cfg['smtp_pass'] : '');
 $test_to   = !empty($_POST['test_to']) ? $_POST['test_to'] : (isset($cfg['recipient_email']) ? $cfg['recipient_email'] : 'contact@sali-digicom.com');
 
