@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ArrowRight, ArrowLeft, Check, AlertCircle, Send, CheckCircle } from 'lucide-react';
 
@@ -29,6 +29,9 @@ const POSITIONS = [
 export default function QuestionnaireFlow({ type, initialContactInfo, onClose, onSuccess }: QuestionnaireFlowProps) {
   const [activeType, setActiveType] = useState<'website' | 'community'>(type);
   const [currentStep, setCurrentStep] = useState(0);
+  const questionsContainerRef = useRef<HTMLDivElement>(null);
+  const existingSiteInputRef = useRef<HTMLInputElement>(null);
+  const cmSiteInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<any>(() => ({
     clientName: initialContactInfo?.name || '',
     clientEmail: initialContactInfo?.email || '',
@@ -57,6 +60,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
 
   // Scroll to top on step changes
   useEffect(() => {
+    questionsContainerRef.current?.scrollTo({ top: 0, behavior: 'instant' });
     const container = document.querySelector('.fixed.inset-0.overflow-y-auto');
     if (container) {
       container.scrollTo({ top: 0, behavior: 'instant' });
@@ -353,6 +357,8 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
   const handleNext = () => {
     if (validateStep()) {
       setCurrentStep(prev => prev + 1);
+    } else {
+      questionsContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -363,7 +369,10 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateStep()) return;
+    if (!validateStep()) {
+      questionsContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
 
     setIsSubmitting(true);
     setSubmitStatus('idle');
@@ -519,7 +528,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
   
 
   return (
-    <div className="relative bg-[#1c2c46] border border-white/10 w-full rounded-3xl flex flex-col md:flex-row overflow-hidden shadow-2xl h-auto lg:h-[80vh]">
+    <div className="relative bg-[#1c2c46] border border-white/10 w-full max-w-5xl rounded-3xl flex flex-col md:flex-row overflow-hidden shadow-2xl h-auto md:h-[88vh] md:max-h-[820px]">
           {/* Header Close button */}
           <button 
             onClick={onClose}
@@ -529,7 +538,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
           </button>
 
           {/* Left panel: Info & Progress (Desktop) */}
-          <div className="md:w-2/5 bg-[#17253b] p-6 lg:p-10 flex flex-col justify-between border-b md:border-b-0 md:border-r border-white/5 lg:h-[80vh]">
+          <div className="md:w-2/5 bg-[#17253b] p-6 md:p-8 lg:p-10 flex flex-col justify-between border-b md:border-b-0 md:border-r border-white/5 md:h-full shrink-0 overflow-y-auto">
             <div>
               <span className="text-[9px] font-bold tracking-[3px] uppercase text-[#1d9878] bg-[#1d9878]/10 border border-[#1d9878]/20 px-3.5 py-1 rounded-full mb-4 inline-block">
                 SALI DIGICOM
@@ -583,7 +592,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
           </div>
 
           {/* Right panel: Dynamic form scrolling area */}
-          <div className="flex-1 px-6 pt-6 pb-6 lg:p-10 flex flex-col overflow-hidden h-auto lg:h-[80vh]">
+          <div className="flex-1 px-6 pt-6 pb-6 md:p-8 lg:p-10 flex flex-col overflow-hidden min-h-0 md:h-full">
             
             {submitStatus === 'success' ? (
               /* Success view with satisfaction survey & redirect */
@@ -748,7 +757,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
               <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
                 
                 {/* Steps Questions */}
-                <div className="flex-1 overflow-y-auto pr-2 mb-4">
+                <div ref={questionsContainerRef} className="flex-1 overflow-y-auto pr-2 mb-3 min-h-0">
                   {validationError && (
                     <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-[11.5px] font-bold rounded-lg flex items-center gap-2">
                       <AlertCircle size={14} />
@@ -780,7 +789,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               {["Visibilité en ligne", "Générer des demandes", "Vendre en ligne", "Permettre la prise de rendez-vous"].map(obj => {
                                 const isChecked = (formData.objectives || []).includes(obj);
                                 return (
-                                  <label key={obj} className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
+                                  <label key={obj} className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/60 hover:border-white/10'}`}>
                                     <input 
                                       type="checkbox"
                                       checked={isChecked}
@@ -817,7 +826,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               ].map(type => {
                                 const isSelected = formData.siteType === type;
                                 return (
-                                  <label key={type} className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
+                                  <label key={type} className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/60 hover:border-white/10'}`}>
                                     <input 
                                       type="radio"
                                       name="siteType"
@@ -855,12 +864,20 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               ].map(opt => {
                                 const isSelected = formData.hasSite === opt.val;
                                 return (
-                                  <label key={opt.label} className={`flex-1 flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
+                                  <label key={opt.label} className={`flex-1 flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/60 hover:border-white/10'}`}>
                                     <input 
                                       type="radio"
-                                      name="hasSite"
+                                      name="hasSiteWebsite"
                                       checked={isSelected}
-                                      onChange={() => handleInputChange('hasSite', opt.val)}
+                                      onChange={() => {
+                                        handleInputChange('hasSite', opt.val);
+                                        if (opt.val === true) {
+                                          setTimeout(() => {
+                                            existingSiteInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                            existingSiteInputRef.current?.focus();
+                                          }, 80);
+                                        }
+                                      }}
                                       className="sr-only"
                                     />
                                     <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
@@ -872,8 +889,9 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               })}
                             </div>
                             {formData.hasSite === true && (
-                              <div className="flex flex-col gap-2 w-full mt-2">
+                              <div className="flex flex-col gap-2 w-full mt-2 animate-fadeIn">
                                 <input 
+                                  ref={existingSiteInputRef}
                                   type="text"
                                   value={formData.existingSiteUrl || ''}
                                   onChange={(e) => handleInputChange('existingSiteUrl', e.target.value)}
@@ -903,7 +921,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               {["Accueil", "À propos", "Services", "Réalisations", "Blog", "Contact"].map(page => {
                                 const isChecked = (formData.pages || []).includes(page);
                                 return (
-                                  <label key={page} className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/50 hover:border-white/10'}`}>
+                                  <label key={page} className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/50 hover:border-white/10'}`}>
                                     <input 
                                       type="checkbox"
                                       checked={isChecked}
@@ -938,7 +956,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               ].map(option => {
                                 const isSelected = formData.contentProvider === option;
                                 return (
-                                  <label key={option} className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
+                                  <label key={option} className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/60 hover:border-white/10'}`}>
                                     <input 
                                       type="radio"
                                       name="contentProvider"
@@ -962,7 +980,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               {["Formulaire", "Prise de rendez-vous", "Catalogue", "Paiement en ligne", "Chatbot", "Aucune de celles-ci"].map(feat => {
                                 const isChecked = (formData.features || []).includes(feat);
                                 return (
-                                  <label key={feat} className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/50 hover:border-white/10'}`}>
+                                  <label key={feat} className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/50 hover:border-white/10'}`}>
                                     <input 
                                       type="checkbox"
                                       checked={isChecked}
@@ -1003,7 +1021,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               {["Français", "Anglais", "Arabe classique", "Arabe dialectal"].map(lang => {
                                 const isChecked = (formData.languagesSelected || []).includes(lang);
                                 return (
-                                  <label key={lang} className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/50 hover:border-white/10'}`}>
+                                  <label key={lang} className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/50 hover:border-white/10'}`}>
                                     <input 
                                       type="checkbox"
                                       checked={isChecked}
@@ -1044,7 +1062,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               ].map(option => {
                                 const isSelected = formData.designQuote === option.val;
                                 return (
-                                  <label key={option.val} className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
+                                  <label key={option.val} className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/60 hover:border-white/10'}`}>
                                     <input 
                                       type="radio"
                                       name="designQuote"
@@ -1109,7 +1127,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               {["Sobre", "Premium", "Moderne", "Dynamique"].map(st => {
                                 const isChecked = (formData.style || []).includes(st);
                                 return (
-                                  <label key={st} className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/50 hover:border-white/10'}`}>
+                                  <label key={st} className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/50 hover:border-white/10'}`}>
                                     <input 
                                       type="checkbox"
                                       checked={isChecked}
@@ -1139,7 +1157,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               {["Oui, avec des animations", "Non, une expérience plus statique"].map(opt => {
                                 const isSelected = formData.animations === opt;
                                 return (
-                                  <label key={opt} className={`flex-1 flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
+                                  <label key={opt} className={`flex-1 flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/60 hover:border-white/10'}`}>
                                     <input 
                                       type="radio"
                                       name="animations"
@@ -1182,7 +1200,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                             ].map((opt) => {
                               const isSelected = formData.hostingMaintenance === opt.text;
                               return (
-                                <label key={opt.key} className={`flex items-start gap-3 p-4 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
+                                <label key={opt.key} className={`flex items-start gap-3 p-4 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/60 hover:border-white/10'}`}>
                                   <input 
                                     type="radio"
                                     name="hostingMaintenance"
@@ -1279,7 +1297,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               ].map(opt => {
                                 const isSelected = formData.whatsapp === opt.val;
                                 return (
-                                  <label key={opt.label} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
+                                  <label key={opt.label} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/60 hover:border-white/10'}`}>
                                     <input 
                                       type="radio"
                                       name="whatsapp"
@@ -1413,7 +1431,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               ].map(obj => {
                                 const isChecked = (formData.objectives || []).includes(obj);
                                 return (
-                                  <label key={obj} className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/50 hover:border-white/10'}`}>
+                                  <label key={obj} className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/50 hover:border-white/10'}`}>
                                     <input 
                                       type="checkbox"
                                       checked={isChecked}
@@ -1483,7 +1501,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               {["Instagram", "Facebook", "LinkedIn"].map(sm => {
                                 const isChecked = (formData.socialMedia || []).includes(sm);
                                 return (
-                                  <label key={sm} className={`flex-1 flex items-center justify-center gap-2.5 p-3 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/50 hover:border-white/10'}`}>
+                                  <label key={sm} className={`flex-1 flex items-center justify-center gap-2.5 p-3 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/50 hover:border-white/10'}`}>
                                     <input 
                                       type="checkbox"
                                       checked={isChecked}
@@ -1516,7 +1534,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               ].map(opt => {
                                 const isSelected = formData.hasActiveAccounts === opt.val;
                                 return (
-                                  <label key={opt.val} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
+                                  <label key={opt.val} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/60 hover:border-white/10'}`}>
                                     <input 
                                       type="radio"
                                       name="hasActiveAccounts"
@@ -1557,7 +1575,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               ].map(choice => {
                                 const isSelected = formData.existingContentChoice === choice;
                                 return (
-                                  <label key={choice} className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
+                                  <label key={choice} className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/60 hover:border-white/10'}`}>
                                     <input 
                                       type="radio"
                                       name="existingContentChoice"
@@ -1585,7 +1603,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               ].map(f => {
                                 const isChecked = (formData.formats || []).includes(f);
                                 return (
-                                  <label key={f} className={`flex items-center gap-2.5 p-2 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/50 hover:border-white/10'}`}>
+                                  <label key={f} className={`flex items-center gap-2.5 p-2 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/50 hover:border-white/10'}`}>
                                     <input 
                                       type="checkbox"
                                       checked={isChecked}
@@ -1625,7 +1643,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               ].map(style => {
                                 const isChecked = (formData.editorialStyle || []).includes(style);
                                 return (
-                                  <label key={style} className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/50 hover:border-white/10'}`}>
+                                  <label key={style} className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/50 hover:border-white/10'}`}>
                                     <input 
                                       type="checkbox"
                                       checked={isChecked}
@@ -1671,7 +1689,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               ].map(option => {
                                 const isSelected = formData.visualIdentity === option.val;
                                 return (
-                                  <label key={option.val} className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
+                                  <label key={option.val} className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/60 hover:border-white/10'}`}>
                                     <input 
                                       type="radio"
                                       name="visualIdentity"
@@ -1795,7 +1813,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 ].map(opt => {
                                   const isSelected = formData.useAds === opt.val;
                                   return (
-                                    <label key={opt.val} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
+                                    <label key={opt.val} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/60 hover:border-white/10'}`}>
                                       <input 
                                         type="radio"
                                         name="useAds"
@@ -1821,12 +1839,20 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 ].map(opt => {
                                   const isSelected = formData.hasSite === opt.val;
                                   return (
-                                    <label key={opt.label} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
+                                    <label key={opt.label} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/60 hover:border-white/10'}`}>
                                       <input 
                                         type="radio"
-                                        name="hasSite"
+                                        name="hasSiteCM"
                                         checked={isSelected}
-                                        onChange={() => handleInputChange('hasSite', opt.val)}
+                                        onChange={() => {
+                                          handleInputChange('hasSite', opt.val);
+                                          if (opt.val === true) {
+                                            setTimeout(() => {
+                                              cmSiteInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                              cmSiteInputRef.current?.focus();
+                                            }, 80);
+                                          }
+                                        }}
                                         className="sr-only"
                                       />
                                       <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-[#1d9878]' : 'border-white/20'}`}>
@@ -1856,9 +1882,10 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                 </div>
                               )}
                               {formData.hasSite === true && (
-                                <div className="flex flex-col gap-1">
+                                <div className="flex flex-col gap-1 animate-fadeIn">
                                   <label className="text-[9.5px] font-bold tracking-[1px] uppercase text-white/60">Lien de votre site web ? (Facultatif)</label>
                                   <input 
+                                    ref={cmSiteInputRef}
                                     type="text"
                                     value={formData.siteUrl || ''}
                                     onChange={(e) => handleInputChange('siteUrl', e.target.value)}
@@ -1877,7 +1904,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                                     ].map(opt => {
                                       const isSelected = formData.wantSiteQuote === opt.val;
                                       return (
-                                        <label key={opt.label} className={`flex-1 flex items-center justify-center gap-2 p-1.5 rounded-lg border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/50 hover:border-white/10'}`}>
+                                        <label key={opt.label} className={`flex-1 flex items-center justify-center gap-2 p-1.5 rounded-lg border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/50 hover:border-white/10'}`}>
                                           <input 
                                             type="radio"
                                             name="wantSiteQuote"
@@ -1957,7 +1984,7 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                               ].map(opt => {
                                 const isSelected = formData.whatsapp === opt.val;
                                 return (
-                                  <label key={opt.label} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/208 border-white/5 text-white/60 hover:border-white/10'}`}>
+                                  <label key={opt.label} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-[#1d9878]/10 border-[#1d9878] text-white' : 'bg-white/5 border-white/5 text-white/60 hover:border-white/10'}`}>
                                     <input 
                                       type="radio"
                                       name="whatsapp"
@@ -1991,36 +2018,44 @@ export default function QuestionnaireFlow({ type, initialContactInfo, onClose, o
                 </div>
 
                 {/* Footer buttons */}
-                <div className="relative z-10 flex justify-between border-t border-white/5 pt-4 pb-2 lg:pb-0 mt-auto">
-                  <button 
-                    type="button"
-                    disabled={currentStep === 0}
-                    onClick={handlePrev}
-                    className="flex items-center gap-2 border border-white/10 hover:bg-white/5 disabled:opacity-20 text-white font-bold uppercase tracking-[1.5px] text-[9.5px] px-5 py-2.5 rounded-full transition-all cursor-pointer"
-                  >
-                    <ArrowLeft size={13} />
-                    Précédent
-                  </button>
-
-                  {currentStep < steps.length - 1 ? (
+                <div className="relative z-10 flex flex-col border-t border-white/5 pt-3 pb-1 lg:pb-0 mt-auto shrink-0">
+                  {validationError && (
+                    <div className="w-full mb-3 p-2.5 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold rounded-xl flex items-center gap-2">
+                      <AlertCircle size={15} className="shrink-0" />
+                      <span>{validationError}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center w-full">
                     <button 
                       type="button"
-                      onClick={handleNext}
-                      className="flex items-center gap-2 bg-white text-[#1c2c46] hover:bg-[#1d9878] hover:text-white font-bold uppercase tracking-[1.5px] text-[9.5px] px-6 py-2.5 rounded-full transition-all cursor-pointer ml-auto"
+                      disabled={currentStep === 0}
+                      onClick={handlePrev}
+                      className="flex items-center gap-2 border border-white/10 hover:bg-white/5 disabled:opacity-20 text-white font-bold uppercase tracking-[1.5px] text-[9.5px] px-5 py-2.5 rounded-full transition-all cursor-pointer"
                     >
-                      Suivant
-                      <ArrowRight size={13} />
+                      <ArrowLeft size={13} />
+                      Précédent
                     </button>
-                  ) : (
-                    <button 
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="flex items-center gap-2 bg-[#1d9878] hover:bg-[#157159] disabled:opacity-50 text-white font-bold uppercase tracking-[1.5px] text-[9.5px] px-6 py-2.5 rounded-full transition-all cursor-pointer ml-auto"
-                    >
-                      {isSubmitting ? 'Transmission...' : 'Envoyer'}
-                      <Send size={13} />
-                    </button>
-                  )}
+
+                    {currentStep < steps.length - 1 ? (
+                      <button 
+                        type="button"
+                        onClick={handleNext}
+                        className="flex items-center gap-2 bg-white text-[#1c2c46] hover:bg-[#1d9878] hover:text-white font-bold uppercase tracking-[1.5px] text-[9.5px] px-6 py-2.5 rounded-full transition-all cursor-pointer ml-auto"
+                      >
+                        Suivant
+                        <ArrowRight size={13} />
+                      </button>
+                    ) : (
+                      <button 
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="flex items-center gap-2 bg-[#1d9878] hover:bg-[#157159] disabled:opacity-50 text-white font-bold uppercase tracking-[1.5px] text-[9.5px] px-6 py-2.5 rounded-full transition-all cursor-pointer ml-auto"
+                      >
+                        {isSubmitting ? 'Transmission...' : 'Envoyer'}
+                        <Send size={13} />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
               </form>
