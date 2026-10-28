@@ -1180,19 +1180,19 @@ export default function QuestionnaireFlow({
                 </p>
               </div>
 
-              {/* Questions List (Strictly 3-4 questions) */}
-              <div data-ui="questions-group" className="space-y-6">
+              {/* Questions List (Strictly 3-4 questions, Minimalist Landing Page Form Style) */}
+              <div data-ui="questions-group" className="space-y-8">
                 {currentStep.questions.map((q, qIndex) => {
                   return (
                     <div 
                       key={q.id}
                       data-ui="question-item"
                       data-question-id={q.id}
-                      className="dc-field-wrap py-3.5 space-y-2 border-b border-white/15 transition-all group focus-within:border-[#1D9878]"
+                      className="space-y-2 group"
                     >
                       <div className="flex items-baseline justify-between gap-3">
-                        <label className="text-xs sm:text-sm font-medium text-[#B8C7DA] group-focus-within:text-white transition-colors leading-snug flex items-center gap-2">
-                          <span className="w-5 h-5 rounded-full bg-[#1C2C46] border border-[#1D9878]/40 text-[#1D9878] text-[10px] flex items-center justify-center font-bold shrink-0">
+                        <label className="text-xs sm:text-sm font-semibold tracking-wide text-[#B8C7DA] group-focus-within:text-[#1D9878] transition-colors leading-snug flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-full bg-[#131F33] border border-[#1D9878]/40 text-[#1D9878] text-[10px] flex items-center justify-center font-bold shrink-0">
                             {qIndex + 1}
                           </span>
                           <span>
@@ -1204,40 +1204,40 @@ export default function QuestionnaireFlow({
 
                       {/* Input Types */}
                       {q.type === 'text' && (
-                        <div className="relative">
+                        <div className="dc-field-wrap">
                           <input
                             type="text"
                             name={q.id}
-                            placeholder={q.placeholder || ''}
+                            placeholder={q.placeholder || 'Votre réponse...'}
                             value={answers[q.id] || ''}
                             onChange={(e) => handleTextChange(q.id, e.target.value)}
-                            className="w-full bg-transparent border-0 py-2 text-white text-sm sm:text-base placeholder-white/25 focus:outline-none focus:ring-0"
+                            className="dc-input text-white text-sm sm:text-base py-3"
                           />
                           <span className="dc-field-focus-line" aria-hidden="true" />
                         </div>
                       )}
 
                       {q.type === 'textarea' && (
-                        <div className="relative">
+                        <div className="dc-field-wrap">
                           <textarea
                             rows={3}
                             name={q.id}
-                            placeholder={q.placeholder || ''}
+                            placeholder={q.placeholder || 'Précisez votre besoin...'}
                             value={answers[q.id] || ''}
                             onChange={(e) => handleTextChange(q.id, e.target.value)}
-                            className="w-full bg-transparent border-0 py-2 text-white text-sm sm:text-base placeholder-white/25 focus:outline-none focus:ring-0 resize-none"
+                            className="dc-textarea text-white text-sm sm:text-base py-3 resize-none"
                           />
                           <span className="dc-field-focus-line" aria-hidden="true" />
                         </div>
                       )}
 
                       {q.type === 'select' && (
-                        <div className="relative">
+                        <div className="dc-field-wrap relative">
                           <select
                             name={q.id}
                             value={answers[q.id] || ''}
                             onChange={(e) => handleTextChange(q.id, e.target.value)}
-                            className="w-full appearance-none bg-transparent border-0 py-2 text-white text-sm sm:text-base focus:outline-none focus:ring-0 pr-8 cursor-pointer"
+                            className="dc-input appearance-none text-white text-sm sm:text-base py-3 pr-8 cursor-pointer"
                           >
                             <option value="" className="bg-[#1C2C46] text-white/50">Sélectionnez une option...</option>
                             {q.options?.map((opt) => (
@@ -1246,13 +1246,13 @@ export default function QuestionnaireFlow({
                               </option>
                             ))}
                           </select>
-                          <ChevronDown className="w-4 h-4 text-[#1D9878] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <ChevronDown className="w-4 h-4 text-[#1D9878] absolute right-2 bottom-4 pointer-events-none" />
                           <span className="dc-field-focus-line" aria-hidden="true" />
                         </div>
                       )}
 
                       {q.type === 'radio' && (
-                        <div className="pt-2 flex flex-wrap gap-2.5">
+                        <div className="pt-2 flex flex-wrap gap-3">
                           {q.options?.map((opt) => {
                             const isSelected = answers[q.id] === opt;
                             return (
@@ -1260,18 +1260,20 @@ export default function QuestionnaireFlow({
                                 key={opt}
                                 type="button"
                                 onClick={() => handleRadioSelect(q.id, opt)}
-                                className={`px-4 py-2 rounded-full border text-left text-xs transition-all flex items-center gap-2 ${
+                                className={`inline-flex items-center gap-3 px-4 py-2.5 rounded-full border text-xs sm:text-sm transition-all duration-300 cursor-pointer ${
                                   isSelected
-                                    ? 'bg-[#1D9878]/20 border-[#1D9878] text-white font-medium shadow-sm'
-                                    : 'bg-transparent border-white/20 text-white/70 hover:text-white hover:border-[#1D9878]/50'
+                                    ? 'border-[#1D9878] bg-[#1D9878]/15 text-white font-semibold shadow-[0_0_15px_rgba(29,152,120,0.25)]'
+                                    : 'border-white/20 bg-transparent text-[#B8C7DA] hover:border-white/50 hover:text-white'
                                 }`}
                               >
-                                <div className={`w-3.5 h-3.5 rounded-full border shrink-0 flex items-center justify-center ${
-                                  isSelected ? 'border-[#1D9878] bg-[#1D9878]' : 'border-white/30'
-                                }`}>
-                                  {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                                </div>
-                                <span className="leading-snug">{opt}</span>
+                                <span
+                                  className={`w-2.5 h-2.5 border transition-all duration-300 shrink-0 transform ${
+                                    isSelected
+                                      ? 'rotate-[135deg] bg-[#1D9878] border-[#1D9878] scale-110'
+                                      : 'rotate-45 bg-transparent border-white/40'
+                                  }`}
+                                />
+                                <span>{opt}</span>
                               </button>
                             );
                           })}
@@ -1279,7 +1281,7 @@ export default function QuestionnaireFlow({
                       )}
 
                       {q.type === 'multiselect' && (
-                        <div className="pt-2 flex flex-wrap gap-2.5">
+                        <div className="pt-2 flex flex-wrap gap-3">
                           {q.options?.map((opt) => {
                             const isSelected = Array.isArray(answers[q.id]) && answers[q.id].includes(opt);
                             return (
@@ -1287,18 +1289,20 @@ export default function QuestionnaireFlow({
                                 key={opt}
                                 type="button"
                                 onClick={() => handleMultiToggle(q.id, opt)}
-                                className={`px-4 py-2 rounded-full border text-left text-xs transition-all flex items-center gap-2 ${
+                                className={`inline-flex items-center gap-3 px-4 py-2.5 rounded-full border text-xs sm:text-sm transition-all duration-300 cursor-pointer ${
                                   isSelected
-                                    ? 'bg-[#1D9878]/20 border-[#1D9878] text-white font-medium shadow-sm'
-                                    : 'bg-transparent border-white/20 text-white/70 hover:text-white hover:border-[#1D9878]/50'
+                                    ? 'border-[#1D9878] bg-[#1D9878]/15 text-white font-semibold shadow-[0_0_15px_rgba(29,152,120,0.25)]'
+                                    : 'border-white/20 bg-transparent text-[#B8C7DA] hover:border-white/50 hover:text-white'
                                 }`}
                               >
-                                <div className={`w-3.5 h-3.5 rounded border shrink-0 flex items-center justify-center ${
-                                  isSelected ? 'border-[#1D9878] bg-[#1D9878]' : 'border-white/30'
-                                }`}>
-                                  {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
-                                </div>
-                                <span className="leading-snug">{opt}</span>
+                                <span
+                                  className={`w-2.5 h-2.5 border transition-all duration-300 shrink-0 transform ${
+                                    isSelected
+                                      ? 'rotate-[135deg] bg-[#1D9878] border-[#1D9878] scale-110'
+                                      : 'rotate-45 bg-transparent border-white/40'
+                                  }`}
+                                />
+                                <span>{opt}</span>
                               </button>
                             );
                           })}

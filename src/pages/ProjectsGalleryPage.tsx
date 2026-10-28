@@ -6,7 +6,12 @@ import { subscribeMotion } from '../components/MotionPrimitives';
 
 const clamp = (v: number, min: number, max: number): number => Math.min(max, Math.max(min, v));
 
-export function ProjectsGalleryPage() {
+export interface ProjectsGalleryPageProps {
+  onOpenProject?: (proj: PortfolioProject) => void;
+  onNavigateWithCurtain?: (path: string) => void;
+}
+
+export function ProjectsGalleryPage({ onOpenProject, onNavigateWithCurtain }: ProjectsGalleryPageProps = {}) {
   const { navigate } = useRouter();
   const [activePoleIndex, setActivePoleIndex] = useState(0);
   const activePoleRef = useRef(0);
@@ -15,6 +20,24 @@ export function ProjectsGalleryPage() {
 
   const tunnelSecRef = useRef<HTMLElement | null>(null);
   const tunnelPlateRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  const handleNav = (path: string) => {
+    if (onNavigateWithCurtain) {
+      onNavigateWithCurtain(path);
+    } else {
+      navigate(path);
+    }
+  };
+
+  const handleOpenProject = (proj: PortfolioProject) => {
+    if (onOpenProject) {
+      onOpenProject(proj);
+    } else if (onNavigateWithCurtain) {
+      onNavigateWithCurtain(`/projet/${proj.slug}`);
+    } else {
+      navigate(`/projet/${proj.slug}`);
+    }
+  };
 
   useEffect(() => {
     document.title = 'Nos Réalisations | SALI DigiCom — Agence de Marketing & Communication Digitale';
@@ -79,10 +102,6 @@ export function ProjectsGalleryPage() {
     return () => unsub();
   }, []);
 
-  const handleOpenProject = (proj: PortfolioProject) => {
-    navigate(`/projet/${proj.slug}`);
-  };
-
   return (
     <div className="min-h-screen bg-[#1C2C46] text-white font-['Montserrat',sans-serif] selection:bg-[#1D9878] selection:text-white">
       {/* 3D Tunnel Réalisations */}
@@ -93,8 +112,8 @@ export function ProjectsGalleryPage() {
             <div className="pointer-events-auto">
               <button
                 type="button"
-                onClick={() => navigate('/')}
-                className="group focus:outline-none"
+                onClick={() => handleNav('/')}
+                className="group focus:outline-none cursor-pointer"
                 aria-label="Accueil SALI DigiCom"
               >
                 <Logo variant="digicom" type="horizontal" className="h-8 md:h-9 w-auto opacity-95 group-hover:opacity-100 transition-opacity" />
@@ -104,8 +123,8 @@ export function ProjectsGalleryPage() {
             <div className="flex items-center gap-4 pointer-events-auto">
               <button
                 type="button"
-                onClick={() => navigate('/')}
-                className="px-4 py-2 rounded-full border border-white/20 hover:border-[#1D9878] bg-[#131F33]/80 hover:bg-[#1D9878]/15 text-xs font-semibold text-[#B8C7DA] hover:text-white transition-all shadow-md"
+                onClick={() => handleNav('/')}
+                className="px-4 py-2 rounded-full border border-white/20 hover:border-[#1D9878] bg-[#131F33]/80 hover:bg-[#1D9878]/15 text-xs font-semibold text-[#B8C7DA] hover:text-white transition-all shadow-md cursor-pointer"
               >
                 ← Retour à l'accueil
               </button>
@@ -208,7 +227,7 @@ export function ProjectsGalleryPage() {
               <div className="mt-2">
                 <button
                   type="button"
-                  onClick={() => navigate('/creation-de-site-web')}
+                  onClick={() => handleNav('/creation-de-site-web')}
                   className="dc-pill-btn"
                 >
                   <span className="dc-pill-btn-fill" />

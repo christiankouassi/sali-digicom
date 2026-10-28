@@ -165,11 +165,7 @@ export function SaliDigiCom({
 
   const handleOpenProject = (proj: PortfolioProject) => {
     if (onOpenProject) {
-      if (runWithCurtain) {
-        runWithCurtain(() => onOpenProject(proj));
-      } else {
-        onOpenProject(proj);
-      }
+      onOpenProject(proj);
     } else {
       if (runWithCurtain) {
         runWithCurtain(() => setSelectedProject(proj));

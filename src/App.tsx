@@ -166,12 +166,23 @@ function AppContent() {
     [navigate, runWithCurtain]
   );
 
+  const handleNavigateWithCurtain = useCallback(
+    (path: string) => {
+      setIsMenuOpen(false);
+      runWithCurtain(() => {
+        navigate(path);
+      });
+    },
+    [navigate, runWithCurtain]
+  );
+
   // Dedicated Route Views
   if (route.type === 'projects-gallery') {
     return (
       <div className="min-h-screen bg-[#1C2C46]">
         <CurvedCurtainTransition transitionId={curtainId} onMidpoint={handleCurtainMidpoint} />
-        <ProjectsGalleryPage />
+        <WebGLPrism menuOpen={isMenuOpen} isReady={true} />
+        <ProjectsGalleryPage onOpenProject={handleOpenProject} onNavigateWithCurtain={handleNavigateWithCurtain} />
       </div>
     );
   }
@@ -180,7 +191,7 @@ function AppContent() {
     return (
       <div className="min-h-screen bg-[#1C2C46]">
         <CurvedCurtainTransition transitionId={curtainId} onMidpoint={handleCurtainMidpoint} />
-        <ProjectCaseStudyPage slug={route.slug} />
+        <ProjectCaseStudyPage slug={route.slug} onNavigateWithCurtain={handleNavigateWithCurtain} />
       </div>
     );
   }
@@ -216,7 +227,7 @@ function AppContent() {
     return (
       <div className="min-h-screen bg-[#1C2C46]">
         <CurvedCurtainTransition transitionId={curtainId} onMidpoint={handleCurtainMidpoint} />
-        <ServiceDetailPage slug={route.slug} />
+        <ServiceDetailPage slug={route.slug} onNavigateWithCurtain={handleNavigateWithCurtain} />
       </div>
     );
   }

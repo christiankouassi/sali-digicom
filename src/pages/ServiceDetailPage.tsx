@@ -18,11 +18,20 @@ import {
 
 interface ServiceDetailPageProps {
   slug: string;
+  onNavigateWithCurtain?: (path: string) => void;
 }
 
-export const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ slug }) => {
+export const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ slug, onNavigateWithCurtain }) => {
   const { navigate } = useRouter();
   const service = SERVICES_CATALOG[slug] || SERVICES_CATALOG['web'];
+
+  const handleNav = (path: string) => {
+    if (onNavigateWithCurtain) {
+      onNavigateWithCurtain(path);
+    } else {
+      navigate(path);
+    }
+  };
 
   useEffect(() => {
     document.title = `${service.title} | SALI DigiCom`;
@@ -40,7 +49,7 @@ export const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ slug }) =>
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#1C2C46]/90 backdrop-blur-md border-b border-white/10 px-6 py-4 flex items-center justify-between">
         <button
           type="button"
-          onClick={() => navigate('/')}
+          onClick={() => handleNav('/')}
           className="flex items-center gap-3 group bg-transparent border-0 p-0 text-white cursor-pointer"
         >
           <Logo size="small" variant="horizontal" />
@@ -49,8 +58,8 @@ export const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ slug }) =>
         <div className="flex items-center gap-4">
           <button
             type="button"
-            onClick={() => navigate('/')}
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#B8C7DA] hover:text-white transition-colors"
+            onClick={() => handleNav('/')}
+            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#B8C7DA] hover:text-white transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Retour</span>
@@ -65,9 +74,9 @@ export const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ slug }) =>
                   : slug === 'social-media'
                   ? '/community-management'
                   : '/creation-de-site-web';
-              navigate(qRoute);
+              handleNav(qRoute);
             }}
-            className="px-5 py-2.5 rounded-full bg-[#1D9878] hover:bg-[#167d63] text-white font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-[#1D9878]/25"
+            className="px-5 py-2.5 rounded-full bg-[#1D9878] hover:bg-[#167d63] text-white font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-[#1D9878]/25 cursor-pointer"
           >
             Demander un devis
           </button>
@@ -250,8 +259,8 @@ export const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ slug }) =>
 
             <button
               type="button"
-              onClick={() => navigate('/projets')}
-              className="inline-flex items-center gap-2 text-sm text-[#1D9878] hover:text-white transition-colors self-start md:self-end font-semibold"
+              onClick={() => handleNav('/projets')}
+              className="inline-flex items-center gap-2 text-sm text-[#1D9878] hover:text-white transition-colors self-start md:self-end font-semibold cursor-pointer"
             >
               <span>Voir toutes nos réalisations</span>
               <ArrowUpRight className="w-4 h-4" />
@@ -263,7 +272,7 @@ export const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ slug }) =>
               <button
                 key={p.id}
                 type="button"
-                onClick={() => navigate(`/projet/${p.slug}`)}
+                onClick={() => handleNav(`/projet/${p.slug}`)}
                 className="group text-left bg-transparent border-0 p-0 cursor-pointer block"
               >
                 <div className="rounded-2xl overflow-hidden border border-[#243757] bg-[#131F33] aspect-[3/4] max-w-[340px] mx-auto shadow-xl group-hover:border-[#1D9878] transition-all duration-500">
@@ -313,9 +322,9 @@ export const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ slug }) =>
                     : slug === 'social-media'
                     ? '/community-management'
                     : '/creation-de-site-web';
-                navigate(qRoute);
+                handleNav(qRoute);
               }}
-              className="px-8 py-4 rounded-full bg-[#1D9878] hover:bg-[#167d63] text-white font-bold text-sm uppercase tracking-wider transition-all shadow-xl shadow-[#1D9878]/30 flex items-center gap-3"
+              className="px-8 py-4 rounded-full bg-[#1D9878] hover:bg-[#167d63] text-white font-bold text-sm uppercase tracking-wider transition-all shadow-xl shadow-[#1D9878]/30 flex items-center gap-3 cursor-pointer"
             >
               <span>Demander un devis personnalisé</span>
               <ArrowUpRight className="w-4 h-4" />
@@ -323,8 +332,8 @@ export const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ slug }) =>
 
             <button
               type="button"
-              onClick={() => navigate('/')}
-              className="px-8 py-4 rounded-full border border-white/20 hover:border-white/40 text-white font-medium text-sm transition-all"
+              onClick={() => handleNav('/')}
+              className="px-8 py-4 rounded-full border border-white/20 hover:border-white/40 text-white font-medium text-sm transition-all cursor-pointer"
             >
               Retour à l'accueil
             </button>
