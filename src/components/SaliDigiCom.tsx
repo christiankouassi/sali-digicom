@@ -1,831 +1,1661 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Layers, 
-  Award, 
-  TrendingUp, 
-  Users, 
-  Send,
-  ArrowRight,
-  Phone,
-  Mail,
-  Globe,
-  Code,
-  Sparkles,
-  Search,
-  MessageSquare,
-  Cpu,
-  Workflow
-} from 'lucide-react';
-import { translations, Language } from '../translations';
-import Logo from './Logo';
-import QuestionnaireFlow from './QuestionnaireFlow';
-interface SaliDigiComProps {
-  onBack: () => void;
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  MagneticCta,
+  MagneticPrismCta,
+  SplitChars,
+  SplitLines,
+  SuptitleTag,
+  subscribeMotion,
+  useInViewOnce,
+} from './MotionPrimitives';
+import { PORTFOLIO_PROJECTS, PortfolioProject } from '../data/portfolioProjects';
+import { ProjectCaseStudy } from './ProjectCaseStudy';
+import { ProjectsGalleryModal } from './ProjectsGalleryModal';
+
+export interface SaliDigiComProps {
+  isActive: boolean;
+  isReady?: boolean;
+  onClose: () => void;
   currentSection: number;
-  onGoToSection?: (index: number) => void;
-  lang?: Language;
-  isDigiComDomain?: boolean;
-  onOpenQuestionnaire?: (type: 'website' | 'community', contactInfo: any) => void;
-  isSubmittedFromModal?: boolean;
-  onResetForm?: () => void;
+  setCurrentSection: React.Dispatch<React.SetStateAction<number>>;
+  onOpenQuestionnaire: (
+    type: 'website' | 'community' | 'branding',
+    initialData?: { name?: string; phone?: string; email?: string; company?: string }
+  ) => void;
+  runWithCurtain?: (action: () => void) => void;
 }
 
-export default function SaliDigiCom({ 
-  onBack, 
-  currentSection, 
-  onGoToSection, 
-  lang, 
-  isDigiComDomain = false, 
+interface PoleItem {
+  id: string;
+  tag: string;
+  title: string;
+  subtitle: string;
+  summary: string;
+  deliverables: string[];
+  image: string;
+  imageAlt: string;
+  ctaLabel: string;
+  action: 'website' | 'community' | 'branding' | 'direct';
+  project: PortfolioProject;
+}
+
+const POLES: PoleItem[] = PORTFOLIO_PROJECTS.map((proj) => ({
+  id: proj.id,
+  tag: proj.categoryLabel,
+  title: proj.title,
+  subtitle: `${proj.client} · ${proj.city}`,
+  summary: proj.excerpt,
+  deliverables: proj.deliverables,
+  image: proj.primaryImage,
+  imageAlt: proj.title,
+  ctaLabel: 'Découvrir l\'étude',
+  action: proj.category === 'web' ? 'website' : proj.category === 'community' ? 'community' : 'branding',
+  project: proj,
+}));
+
+const CLIENT_LOGOS = [
+  { name: 'CAP Investment Solutions', logo: '/portfolio/logos/cap-white.png', sector: 'FinTech & Conseil · Dubaï / Casa', projectId: 'cap-investment' },
+  { name: 'Gueliz Properties', logo: '/portfolio/logos/gueliz-white.png', sector: 'Immobilier de Luxe · Marrakech', projectId: 'gueliz-properties' },
+  { name: 'Cabinet Imtiaz Taamine', logo: '/portfolio/logos/imtiaz-white.png', sector: 'Courtage & Assurance · Maroc', projectId: 'imtiaz-taamine' },
+  { name: 'Axeon Media', logo: '/portfolio/logos/axeon-white.png', sector: 'Média & Événementiel · Maroc', projectId: 'axeon-media' },
+  { name: 'CAP\'ASSUR', logo: '/portfolio/logos/capassur-white.png', sector: 'Assurances & Patrimoine · Maroc', projectId: 'capassur' },
+];
+
+const EXPERTISES = [
+  {
+    title: 'Conseil & Cadrage Stratégique',
+    detail:
+      'Audit de positionnement, architecture d’information et feuille de route chiffrée avant chaque mise en production.',
+    image: '/portfolio/websites/cap-section-desktop.jpg',
+    alt: 'Grille d’expertise financière et cadrage stratégique CAP Investment Solutions',
+  },
+  {
+    title: 'Design d’Interface & Expérience 3D',
+    detail:
+      'Direction artistique sur mesure, micro-interactions fluides et parcours pensés pour la lisibilité mobile et desktop.',
+    image: '/portfolio/websites/gueliz-hero-desktop.jpg',
+    alt: 'Interface épurée et design d’exception pour Gueliz Properties',
+  },
+  {
+    title: 'Développement Web & E-Commerce',
+    detail:
+      'Code propre, rapide et maintenable, connecté à vos outils de paiement, de prise de rendez-vous et de gestion.',
+    image: '/portfolio/websites/cap-hero-desktop.jpg',
+    alt: 'Architecture web haute performance CAP Investment Solutions',
+  },
+  {
+    title: 'Community Management & Création',
+    detail:
+      'Calendrier éditorial, conception de visuels, montage court et animation quotidienne de vos réseaux sociaux.',
+    image: '/portfolio/axeon/axeon-campagne-01.jpg',
+    alt: 'Création visuelle et campagne d’influence pour Axeon Media',
+  },
+  {
+    title: 'Référencement Naturel & Acquisition',
+    detail:
+      'Structure SEO durable, optimisation des temps de chargement et tunnel d’acquisition de prospects qualifiés.',
+    image: '/portfolio/websites/imtiaz-hero-desktop.jpg',
+    alt: 'Portail de devis et acquisition d’assurance Imtiaz Taamine',
+  },
+];
+
+const SENTENCE_LINES = [
+  'Quel que soit votre secteur,',
+  'nous hissons votre image digitale',
+  'au niveau d’exigence de votre marque.',
+];
+
+function clamp(v: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, v));
+}
+
+export function SaliDigiCom({
+  isReady = true,
+  setCurrentSection,
   onOpenQuestionnaire,
-  isSubmittedFromModal = false,
-  onResetForm
+  runWithCurtain,
 }: SaliDigiComProps) {
-  const activeLang = lang || 'fr';
-  const t = translations[activeLang];
+  // Hero refs (chunk-930.js)
+  const introRef = useRef<HTMLElement | null>(null);
+  const topWordRef = useRef<HTMLDivElement | null>(null);
+  const bottomWordRef = useRef<HTMLDivElement | null>(null);
+  const heroLineRefs = useRef<Array<HTMLSpanElement | null>>([]);
+  const [heroCtaMotion, setHeroCtaMotion] = useState({ x: 0, opacity: 1 });
 
-  const sectionPadds = activeLang === 'ar' 
-    ? 'lg:pr-[290px] xl:pr-[330px] lg:pl-10 xl:pl-16' 
-    : 'lg:pl-[290px] xl:pl-[330px] lg:pr-10 xl:pr-16';
+  // Statement parallax CTA ref (chunk-198.js)
+  const statementSecRef = useRef<HTMLElement | null>(null);
+  const [statementCtaY, setStatementCtaY] = useState(0);
 
-  const [formData, setFormData] = useState({
+  // Showreel video & cursor-chasing diamond refs (chunk-174.js + module 2959)
+  const videoStageRef = useRef<HTMLDivElement | null>(null);
+  const videoFollowerRef = useRef<HTMLButtonElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const videoInView = useInViewOnce(0.08);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(true);
+
+  // Sticky kinetic sentence refs (chunk-239.js)
+  const sentenceRef = useRef<HTMLElement | null>(null);
+  const sentenceLineRefs = useRef<Array<HTMLSpanElement | null>>([]);
+
+  // 3D Z-space perspective tunnel gallery refs (chunk-500.js)
+  const tunnelSecRef = useRef<HTMLElement | null>(null);
+  const tunnelPlateRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const hoveredPoleRef = useRef<number | null>(null);
+  const activePoleRef = useRef<number>(0);
+  const [activePoleIndex, setActivePoleIndex] = useState(0);
+  const [poleSwitchDir, setPoleSwitchDir] = useState<1 | -1>(1);
+  const [prismDashOffset, setPrismDashOffset] = useState(340);
+  const [inspectedPole, setInspectedPole] = useState<PoleItem | null>(null);
+  const [selectedProject, setSelectedProject] = useState<PortfolioProject | null>(null);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+
+  const handleOpenProject = (proj: PortfolioProject) => {
+    if (runWithCurtain) {
+      runWithCurtain(() => setSelectedProject(proj));
+    } else {
+      setSelectedProject(proj);
+    }
+  };
+
+  const handleNavigateNextProject = (nextSlug: string) => {
+    const next = PORTFOLIO_PROJECTS.find((p) => p.slug === nextSlug);
+    if (!next) return;
+    if (runWithCurtain) {
+      runWithCurtain(() => setSelectedProject(next));
+    } else {
+      setSelectedProject(next);
+    }
+  };
+
+  // Editorial Services directional counter-slide curtain refs (chunk-46.js)
+  const serviceSlideRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const serviceImgRefs = useRef<Array<HTMLImageElement | null>>([]);
+  const prevExpertiseRef = useRef<number>(0);
+  const [activeExpertise, setActiveExpertise] = useState(0);
+
+  // Hollow Key Figures refs (chunk-842.js)
+  const skfWrap = useInViewOnce(0.14);
+  const skfColRefs = useRef<Array<HTMLDivElement | null>>([]);
+
+  // Footer Casablanca floating cursor preview card (Q.prototype mod-954)
+  const cityLinkRef = useRef<HTMLAnchorElement | null>(null);
+  const cityCardRef = useRef<HTMLDivElement | null>(null);
+  const cityHoverRef = useRef(false);
+
+  // Direct contact selector & form state
+  const [selectedChoice, setSelectedChoice] = useState<'website' | 'community' | 'direct'>('direct');
+  const [contactForm, setContactForm] = useState({
     name: '',
-    phone: '',
     email: '',
+    phone: '',
     company: '',
-    projectType: 'web',
-    message: ''
+    message: '',
   });
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isSending, setIsSending] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [contactSending, setContactSending] = useState(false);
+  const [contactFeedback, setContactFeedback] = useState<{
+    kind: 'idle' | 'success' | 'error';
+    text: string;
+  }>({ kind: 'idle', text: '' });
 
+  // Initialize Services slides: slide 0 visible at 0%, slides 1..4 parked at +100%/-100%
   useEffect(() => {
-    if (isSubmittedFromModal) {
-      setIsSubmitted(true);
-    }
-  }, [isSubmittedFromModal]);
-
-  const handleResetForm = () => {
-    setIsSubmitted(false);
-    onResetForm?.();
-    setFormData({
-      name: '',
-      phone: '',
-      email: '',
-      company: '',
-      projectType: 'web',
-      message: ''
-    });
-  };
-
-  // Web Services
-  const webServices = [
-    { title: t.digicom.webServices.landing.title, desc: t.digicom.webServices.landing.desc, icon: <Layers className="w-5 h-5 text-[#1d9878]" /> },
-    { title: t.digicom.webServices.showcase.title, desc: t.digicom.webServices.showcase.desc, icon: <Globe className="w-5 h-5 text-[#1d9878]" /> },
-    { title: t.digicom.webServices.corporate.title, desc: t.digicom.webServices.corporate.desc, icon: <Code className="w-5 h-5 text-[#1d9878]" /> },
-    { title: t.digicom.webServices.ecommerce.title, desc: t.digicom.webServices.ecommerce.desc, icon: <TrendingUp className="w-5 h-5 text-[#1d9878]" /> },
-    { title: t.digicom.webServices.maintenance.title, desc: t.digicom.webServices.maintenance.desc, icon: <Workflow className="w-5 h-5 text-[#1d9878]" /> }
-  ];
-
-  // Branding Services
-  const brandingServices = [
-    { title: t.digicom.brandingServices.logo.title, desc: t.digicom.brandingServices.logo.desc, icon: <Award className="w-5 h-5 text-[#1d9878]" /> },
-    { title: t.digicom.brandingServices.charte.title, desc: t.digicom.brandingServices.charte.desc, icon: <Layers className="w-5 h-5 text-[#1d9878]" /> },
-    { title: t.digicom.brandingServices.card.title, desc: t.digicom.brandingServices.card.desc, icon: <Users className="w-5 h-5 text-[#1d9878]" /> },
-    { title: t.digicom.brandingServices.brochure.title, desc: t.digicom.brandingServices.brochure.desc, icon: <Sparkles className="w-5 h-5 text-[#1d9878]" /> }
-  ];
-
-  // Marketing Services
-  const marketingServices = [
-    { title: t.digicom.marketingServices.social.title, desc: t.digicom.marketingServices.social.desc, icon: <Users className="w-5 h-5 text-[#1d9878]" /> },
-    { title: t.digicom.marketingServices.ads.title, desc: t.digicom.marketingServices.ads.desc, icon: <TrendingUp className="w-5 h-5 text-[#1d9878]" /> },
-    { title: t.digicom.marketingServices.audit.title, desc: t.digicom.marketingServices.audit.desc, icon: <Search className="w-5 h-5 text-[#1d9878]" /> }
-  ];
-
-  // AI Services
-  const aiServices = [
-    { title: t.digicom.aiServices.chatbot.title, desc: t.digicom.aiServices.chatbot.desc, icon: <MessageSquare className="w-5 h-5 text-[#1d9878]" /> },
-    { title: t.digicom.aiServices.assistant.title, desc: t.digicom.aiServices.assistant.desc, icon: <Cpu className="w-5 h-5 text-[#1d9878]" /> },
-    { title: t.digicom.aiServices.automation.title, desc: t.digicom.aiServices.automation.desc, icon: <Workflow className="w-5 h-5 text-[#1d9878]" /> },
-    { title: t.digicom.aiServices.consulting.title, desc: t.digicom.aiServices.consulting.desc, icon: <Sparkles className="w-5 h-5 text-[#1d9878]" /> }
-  ];
-
-  // 4 steps of our approach
-  const approachSteps = [
-    {
-      name: activeLang === 'ar' ? 'الاستراتيجية والتدقيق' : activeLang === 'en' ? 'Strategy & Audit' : 'Stratégie & Audit',
-      image: 'https://images.unsplash.com/photo-1531538606174-0f90ff5dce83?auto=format&fit=crop&q=80&w=800'
-    },
-    {
-      name: activeLang === 'ar' ? 'تصميم واجهة المستخدم' : activeLang === 'en' ? 'UX/UI Design' : 'Design UX/UI',
-      image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&q=80&w=800'
-    },
-    {
-      name: activeLang === 'ar' ? 'تطوير برمجيات مخصصة' : activeLang === 'en' ? 'Custom Development' : 'Développement Sur Mesure',
-      image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=800'
-    },
-    {
-      name: activeLang === 'ar' ? 'الذكاء الاصطناعي والأداء' : activeLang === 'en' ? 'AI & Performance' : 'IA & Performance',
-      image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&q=80&w=800'
-    }
-  ];
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formData.projectType === 'web') {
-      onOpenQuestionnaire?.('website', formData);
-      return;
-    }
-    if (formData.projectType === 'marketing') {
-      onOpenQuestionnaire?.('community', formData);
-      return;
-    }
-
-    setIsSending(true);
-    setSubmitError(null);
-    try {
-      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const endpoint = isLocal ? '/api/send-email' : '/api/send-email.php';
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          formType: 'contact',
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          company: formData.company,
-          projectType: formData.projectType,
-          message: formData.message
-        })
-      });
-
-      if (response.ok) {
-        setIsSubmitted(true);
+    serviceSlideRefs.current.forEach((slide, idx) => {
+      const img = serviceImgRefs.current[idx];
+      if (!slide || !img) return;
+      slide.style.transition = 'none';
+      img.style.transition = 'none';
+      if (idx === 0) {
+        slide.style.zIndex = '2';
+        slide.style.transform = 'translate3d(0, 0%, 0)';
+        img.style.transform = 'translate3d(0, 0%, 0) scale(1)';
       } else {
-        const errData = await response.json();
-        setSubmitError(errData.error || "Une erreur s'est produite lors de l'envoi.");
+        slide.style.zIndex = '1';
+        slide.style.transform = 'translate3d(0, 102%, 0)';
+        img.style.transform = 'translate3d(0, -102%, 0) scale(1.2)';
       }
-    } catch (err) {
-      console.error(err);
-      setSubmitError("Impossible de se connecter au serveur d'envoi. Veuillez réessayer.");
-    } finally {
-      setIsSending(false);
+    });
+  }, []);
+
+  const switchExpertise = (nextIdx: number) => {
+    const prevIdx = prevExpertiseRef.current;
+    if (nextIdx === prevIdx) return;
+
+    const dir = nextIdx < prevIdx ? 1 : -1;
+    const incomingSlide = serviceSlideRefs.current[nextIdx];
+    const incomingImg = serviceImgRefs.current[nextIdx];
+    const outgoingSlide = serviceSlideRefs.current[prevIdx];
+    const outgoingImg = serviceImgRefs.current[prevIdx];
+
+    if (incomingSlide && incomingImg && outgoingSlide && outgoingImg) {
+      // Park incoming slide at 100% * dir and inner img at -100% * dir scale(1.22)
+      incomingSlide.style.transition = 'none';
+      incomingImg.style.transition = 'none';
+      incomingSlide.style.zIndex = '3';
+      outgoingSlide.style.zIndex = '2';
+      incomingSlide.style.transform = `translate3d(0, ${100 * dir}%, 0)`;
+      incomingImg.style.transform = `translate3d(0, ${-100 * dir}%, 0) scale(1.22)`;
+      void incomingSlide.offsetWidth;
+
+      const ease = '0.82s cubic-bezier(0.23, 1, 0.32, 1)';
+      incomingSlide.style.transition = `transform ${ease}`;
+      incomingImg.style.transition = `transform ${ease}`;
+      outgoingSlide.style.transition = `transform ${ease}`;
+      outgoingImg.style.transition = `transform ${ease}`;
+
+      incomingSlide.style.transform = 'translate3d(0, 0%, 0)';
+      incomingImg.style.transform = 'translate3d(0, 0%, 0) scale(1)';
+      outgoingSlide.style.transform = `translate3d(0, ${-100 * dir}%, 0)`;
+      outgoingImg.style.transform = `translate3d(0, ${100 * dir}%, 0) scale(1.08)`;
     }
+
+    prevExpertiseRef.current = nextIdx;
+    setActiveExpertise(nextIdx);
   };
 
-  // Replay section animations
-  React.useEffect(() => {
-    const digicomSecs = [
-      'digicom-presentation',
-      'digicom-services-1a',
-      'digicom-services-1b',
-      'digicom-services-2a',
-      'digicom-services-2b',
-      'digicom-products-1',
-      'digicom-products-2',
-      'digicom-contact'
-    ];
-    
-    const activeId = digicomSecs[currentSection];
-    digicomSecs.forEach((secId) => {
-      if (secId !== activeId) {
-        const secEl = document.getElementById(secId);
-        if (secEl) {
-          secEl.querySelectorAll('.ae').forEach(el => el.classList.remove('vis'));
+  // Master 60/120fps choreography subscriber (Hero Split, Video Follower, Sentence Scrub, 3D Z-Tunnel, SKF Parallax, City Preview)
+  useEffect(() => {
+    const videoFollower = {
+      inside: false,
+      lerpX: 0,
+      lerpY: 0,
+      rot: 0,
+    };
+
+    const cityFollower = {
+      lerpX: 0,
+      lerpY: 0,
+      opacity: 0,
+    };
+
+    const stageEl = videoStageRef.current;
+    const onVideoEnter = () => {
+      videoFollower.inside = true;
+    };
+    const onVideoLeave = () => {
+      videoFollower.inside = false;
+    };
+    stageEl?.addEventListener('mouseenter', onVideoEnter);
+    stageEl?.addEventListener('mouseleave', onVideoLeave);
+
+    let lastDash = -1;
+    let lastHeroCtaBucket = -1;
+    let lastStmtBucket = -999;
+
+    const unsub = subscribeMotion((s) => {
+      const vh = s.vh;
+      const vw = s.vw;
+      const isDesktop = vw >= 1024;
+      const scrollLag = s.rawY - s.smoothY; // inertial offset
+
+      // 1. HERO FULL OFF-SCREEN SPLIT & MASKED LINE EXIT (chunk-930.js)
+      if (introRef.current && topWordRef.current && bottomWordRef.current) {
+        if (vw >= 900 && !s.reducedMotion) {
+          const rect = introRef.current.getBoundingClientRect();
+          const dampedTop = rect.top + scrollLag;
+          const span = Math.max(1, rect.height - vh);
+          const hp = clamp(-dampedTop / span, 0, 1);
+
+          const leftExitDist = vw * 0.68 + 120;
+          const rightExitDist = vw * 0.68 + 120;
+
+          topWordRef.current.style.transform = `translate3d(${(-hp * leftExitDist).toFixed(1)}px, 0, 0)`;
+          bottomWordRef.current.style.transform = `translate3d(${(hp * rightExitDist).toFixed(1)}px, 0, 0)`;
+
+          heroLineRefs.current.forEach((lineEl, i) => {
+            if (!lineEl) return;
+            if (hp <= 0.002) {
+              lineEl.style.transition = '';
+              lineEl.style.transform = '';
+            } else {
+              const staggeredP = clamp((hp - i * 0.055) / 0.68, 0, 1);
+              lineEl.style.transition = 'none';
+              lineEl.style.transform = `translate3d(0, ${(-staggeredP * 114).toFixed(1)}%, 0)`;
+            }
+          });
+
+          const ctaBucket = Math.round(hp * 100);
+          if (ctaBucket !== lastHeroCtaBucket) {
+            lastHeroCtaBucket = ctaBucket;
+            setHeroCtaMotion({
+              x: hp * (vw * 0.22 + 60),
+              opacity: clamp(1 - hp * 1.45, 0, 1),
+            });
+          }
+        } else {
+          topWordRef.current.style.transform = 'none';
+          bottomWordRef.current.style.transform = 'none';
+          heroLineRefs.current.forEach((lineEl) => {
+            if (lineEl) lineEl.style.transform = 'none';
+          });
         }
       }
-    });
 
-    const trigger = () => {
-      if (activeId) {
-        const activeSec = document.getElementById(activeId);
-        if (activeSec) {
-          const elements = activeSec.querySelectorAll('.ae');
-          if (elements.length > 0) {
-            elements.forEach(el => el.classList.add('vis'));
-            return true;
+      // 2. STATEMENT CTA VERTICAL PARALLAX (chunk-198.js)
+      if (statementSecRef.current && vw >= 900 && !s.reducedMotion) {
+        const sr = statementSecRef.current.getBoundingClientRect();
+        const norm = clamp((vh * 0.5 - (sr.top + sr.height * 0.5)) / vh, -1, 1);
+        const py = Math.round(norm * -32);
+        if (py !== lastStmtBucket) {
+          lastStmtBucket = py;
+          setStatementCtaY(py);
+        }
+      }
+
+      // 3. SHOWREEL CURSOR-CHASING DIAMOND BUTTON (chunk-174.js + module 2959)
+      if (stageEl && videoFollowerRef.current) {
+        if (vw >= 900 && !s.reducedMotion) {
+          const vr = stageEl.getBoundingClientRect();
+          let targetX = 0;
+          let targetY = 0;
+          if (
+            videoFollower.inside &&
+            s.cursorX >= vr.left &&
+            s.cursorX <= vr.right &&
+            s.cursorY >= vr.top &&
+            s.cursorY <= vr.bottom
+          ) {
+            const maxX = Math.max(0, vr.width * 0.42);
+            const maxY = Math.max(0, vr.height * 0.34);
+            targetX = clamp(s.cursorX - (vr.left + vr.width * 0.5), -maxX, maxX);
+            targetY = clamp(s.cursorY - (vr.top + vr.height * 0.5), -maxY, maxY);
+          }
+          videoFollower.lerpX += (targetX - videoFollower.lerpX) * 0.095;
+          videoFollower.lerpY += (targetY - videoFollower.lerpY) * 0.095;
+          const targetRot = videoFollower.inside ? clamp(s.cursorDeltaX * 0.65, -14, 14) : 0;
+          videoFollower.rot += (targetRot - videoFollower.rot) * 0.12;
+
+          videoFollowerRef.current.style.transform = `translate3d(calc(-50% + ${videoFollower.lerpX.toFixed(1)}px), calc(-50% + ${videoFollower.lerpY.toFixed(1)}px), 0) rotate(${videoFollower.rot.toFixed(2)}deg)`;
+        } else {
+          videoFollowerRef.current.style.transform = 'translate3d(-50%, -50%, 0)';
+        }
+      }
+
+      // 4. STICKY KINETIC SENTENCE LINE-BY-LINE IN -> HOLD -> OUT (chunk-239.js)
+      if (sentenceRef.current) {
+        const sr = sentenceRef.current.getBoundingClientRect();
+        if (vw >= 768 && !s.reducedMotion) {
+          const dampedTop = sr.top + scrollLag;
+          const span = Math.max(1, sr.height - vh);
+          const sp = clamp((vh * 0.24 - dampedTop) / (span + vh * 0.36), 0, 1);
+
+          sentenceLineRefs.current.forEach((lineEl, i) => {
+            if (!lineEl) return;
+            let yPct = 0;
+            if (sp < 0.24) {
+              const enterP = clamp((sp - i * 0.04) / 0.16, 0, 1);
+              const eased = 1 - Math.pow(1 - enterP, 3);
+              yPct = (1 - eased) * 108;
+            } else if (sp <= 0.78) {
+              yPct = 0;
+            } else {
+              const exitP = clamp((sp - 0.78 - i * 0.035) / 0.15, 0, 1);
+              const eased = exitP * exitP;
+              yPct = -eased * 110;
+            }
+            const lineAlpha = clamp(1 - Math.abs(yPct) / 26, 0, 1);
+            lineEl.style.opacity = lineAlpha.toFixed(3);
+            lineEl.style.transform = `translate3d(0, ${yPct.toFixed(2)}%, 0)`;
+          });
+        } else {
+          sentenceLineRefs.current.forEach((lineEl) => {
+            if (lineEl) {
+              lineEl.style.opacity = '1';
+              lineEl.style.transform = 'translate3d(0, 0%, 0)';
+            }
+          });
+        }
+      }
+
+      // 5. PINNED 3D Z-SPACE PERSPECTIVE TUNNEL GALLERY (chunk-500.js)
+      if (tunnelSecRef.current) {
+        const tr = tunnelSecRef.current.getBoundingClientRect();
+        const dampedTop = tr.top + scrollLag;
+        if (isDesktop && !s.reducedMotion) {
+          const span = Math.max(1, tr.height - vh);
+          const gp = clamp(-dampedTop / span, 0, 1);
+
+          // Scrub PrismCTA strokeDashoffset 481 -> 0 (chunk-500 progress)
+          const strokeProg = clamp(gp / 0.92, 0, 1);
+          const nextDash = Math.round(481 * (1 - strokeProg));
+          if (nextDash !== lastDash) {
+            lastDash = nextDash;
+            setPrismDashOffset(nextDash);
+          }
+
+          // Camera Z travel through the 4 architectural plates (-120 -> +2120)
+          const spacingZ = 680;
+          const cameraZ = -120 + gp * 2240;
+          const waveBendX = clamp(s.velocity * 0.075, -8.5, 8.5);
+          const cursorParX = s.normX * -14;
+          const cursorParY = s.normY * 10;
+
+          let closestIdx = 0;
+          let closestDist = Infinity;
+
+          tunnelPlateRefs.current.forEach((plateEl, idx) => {
+            if (!plateEl) return;
+            const baseZ = -idx * spacingZ;
+            const relZ = baseZ + cameraZ; // negative = ahead in tunnel, positive = passing camera
+
+            const distToFocus = Math.abs(relZ + 60);
+            if (distToFocus < closestDist) {
+              closestDist = distToFocus;
+              closestIdx = idx;
+            }
+
+            const sideSign = idx % 2 === 0 ? -1 : 1;
+            const posX = sideSign * vw * 0.225 + cursorParX;
+            const posY = -relZ * 0.15 + 14 + cursorParY;
+
+            // Smooth emergence out of #090909 deep darkness & fade past camera
+            let alpha = 1;
+            if (relZ < -520) {
+              alpha = clamp((relZ + 1920) / 1400, 0, 1);
+            } else if (relZ > 230) {
+              alpha = clamp(1 - (relZ - 230) / 360, 0, 1);
+            }
+
+            const isHovered = hoveredPoleRef.current === idx;
+            const hoverScale = isHovered ? 0.95 : 1.0;
+            const sideYaw = sideSign * -4.5;
+
+            plateEl.style.opacity = alpha.toFixed(3);
+            plateEl.style.pointerEvents = alpha > 0.32 ? 'auto' : 'none';
+            plateEl.style.zIndex = String(20 + idx * 2 + (isHovered ? 10 : 0));
+            plateEl.style.transform = `translate3d(calc(-50% + ${posX.toFixed(1)}px), calc(-50% + ${posY.toFixed(1)}px), ${relZ.toFixed(1)}px) rotateX(${waveBendX.toFixed(2)}deg) rotateY(${sideYaw.toFixed(2)}deg) scale(${hoverScale})`;
+          });
+
+          const desiredPole = hoveredPoleRef.current !== null ? hoveredPoleRef.current : closestIdx;
+          if (desiredPole !== activePoleRef.current) {
+            const switchDirection: 1 | -1 = desiredPole > activePoleRef.current ? 1 : -1;
+            activePoleRef.current = desiredPole;
+            setPoleSwitchDir(switchDirection);
+            setActivePoleIndex(desiredPole);
+          }
+        } else {
+          // Tablet / mobile stroke progress fallback
+          const mProg = clamp((vh * 0.8 - tr.top) / Math.max(1, tr.height), 0.2, 1);
+          const nextDash = Math.round(481 * (1 - mProg));
+          if (nextDash !== lastDash) {
+            lastDash = nextDash;
+            setPrismDashOffset(nextDash);
           }
         }
       }
-      return false;
-    };
 
-    trigger();
-    const timers = [10, 30, 80, 150, 300, 600, 1000].map(delay => {
-      return setTimeout(trigger, delay);
+      // 6. HOLLOW KEY FIGURES DIFFERENTIAL PARALLAX (chunk-842.js)
+      if (vw >= 900 && !s.reducedMotion) {
+        skfColRefs.current.forEach((col, idx) => {
+          if (!col) return;
+          const cr = col.getBoundingClientRect();
+          const norm = clamp((vh * 0.65 - cr.top) / vh, -0.5, 1.2);
+          const baseOffset = idx * 26;
+          const parallaxShift = idx * -14 * norm;
+          col.style.transform = `translate3d(0, ${(baseOffset + parallaxShift).toFixed(1)}px, 0)`;
+        });
+      } else {
+        skfColRefs.current.forEach((col) => {
+          if (col) col.style.transform = 'none';
+        });
+      }
+
+      // 7. FOOTER CASABLANCA FLOATING CURSOR CARD (Q.prototype mod-954)
+      if (cityCardRef.current) {
+        const targetOp = cityHoverRef.current && vw >= 900 && !s.reducedMotion ? 1 : 0;
+        cityFollower.opacity += (targetOp - cityFollower.opacity) * 0.14;
+        cityFollower.lerpX += (s.cursorX - cityFollower.lerpX) * 0.10;
+        cityFollower.lerpY += (s.cursorY - cityFollower.lerpY) * 0.10;
+        const tilt = clamp(s.cursorDeltaX * 0.7, -14, 14);
+        cityCardRef.current.style.visibility = cityFollower.opacity > 0.02 ? 'visible' : 'hidden';
+        cityCardRef.current.style.opacity = cityFollower.opacity.toFixed(3);
+        cityCardRef.current.style.transform = `translate3d(${(cityFollower.lerpX + 24).toFixed(1)}px, ${(cityFollower.lerpY - 130).toFixed(1)}px, 0) rotate(${tilt.toFixed(2)}deg) scale(${(0.88 + cityFollower.opacity * 0.12).toFixed(3)})`;
+      }
     });
 
     return () => {
-      timers.forEach(clearTimeout);
+      unsub();
+      stageEl?.removeEventListener('mouseenter', onVideoEnter);
+      stageEl?.removeEventListener('mouseleave', onVideoLeave);
     };
-  }, [currentSection]);
+  }, []);
+
+  // Section tracking for navigation sync
+  useEffect(() => {
+    const secMap: Array<{ id: string; index: number }> = [
+      { id: 'intro', index: 0 },
+      { id: 'poles', index: 1 },
+      { id: 'expertises', index: 2 },
+      { id: 'atelier', index: 3 },
+      { id: 'contact', index: 4 },
+    ];
+    const secIo = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const match = secMap.find((s) => s.id === entry.target.id);
+            if (match) setCurrentSection(match.index);
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+    secMap.forEach((s) => {
+      const node = document.getElementById(s.id);
+      if (node) secIo.observe(node);
+    });
+    return () => secIo.disconnect();
+  }, [setCurrentSection]);
+
+  // Respect prefers-reduced-motion on decorative background video
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      vid.pause();
+      setIsVideoPlaying(false);
+    }
+  }, []);
+
+  const toggleShowreel = () => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    if (vid.paused) {
+      vid.play().catch(() => {});
+      setIsVideoPlaying(true);
+    } else {
+      vid.pause();
+      setIsVideoPlaying(false);
+    }
+  };
+
+  const scrollToContactDirect = () => {
+    const go = () => {
+      setSelectedChoice('direct');
+      const el = document.getElementById('contact');
+      if (el) el.scrollIntoView({ behavior: runWithCurtain ? 'auto' : 'smooth', block: 'start' });
+    };
+    if (runWithCurtain) runWithCurtain(go);
+    else go();
+  };
+
+  const openPoleModal = (pole: PoleItem) => {
+    handleOpenProject(pole.project);
+  };
+
+  const handleChoiceSelect = (choice: 'website' | 'community' | 'direct') => {
+    setSelectedChoice(choice);
+    if (choice === 'website' || choice === 'community') {
+      onOpenQuestionnaire(choice, {
+        name: contactForm.name,
+        email: contactForm.email,
+        phone: contactForm.phone,
+        company: contactForm.company,
+      });
+    }
+  };
+
+  const handlePoleAction = (pole: PoleItem) => {
+    if (pole.action === 'website' || pole.action === 'community') {
+      setInspectedPole(null);
+      onOpenQuestionnaire(pole.action);
+    } else {
+      setInspectedPole(null);
+      scrollToContactDirect();
+    }
+  };
+
+  const handleDirectSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contactForm.name.trim() || !contactForm.email.trim() || !contactForm.message.trim()) {
+      setContactFeedback({
+        kind: 'error',
+        text: 'Merci de renseigner votre nom, votre adresse e-mail et l’objet de votre demande.',
+      });
+      return;
+    }
+
+    setContactSending(true);
+    setContactFeedback({ kind: 'idle', text: '' });
+
+    try {
+      const isLocal =
+        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const isNetlify = window.location.hostname.includes('netlify.app');
+      const endpoint = isLocal
+        ? '/api/send-email'
+        : isNetlify
+          ? '/.netlify/functions/send-email'
+          : '/api/send-email.php';
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          formType: 'contact_direct',
+          clientInfo: {
+            name: contactForm.name.trim(),
+            email: contactForm.email.trim(),
+            phone: contactForm.phone.trim() || 'Non renseigné',
+            company: contactForm.company.trim() || 'Non renseigné',
+            position: 'Contact direct site web',
+            whatsapp: 'Oui',
+          },
+          responses: [
+            {
+              category: 'DEMANDE DIRECTE SALI DIGICOM',
+              question: 'Message transmis depuis le studio digital',
+              answer: contactForm.message.trim(),
+            },
+          ],
+        }),
+      });
+
+      if (!res.ok) throw new Error('Request failed');
+
+      setContactFeedback({
+        kind: 'success',
+        text: 'Votre message a bien été transmis à l’équipe SALI DigiCom. Nous revenons vers vous sous 24 heures.',
+      });
+      setContactForm({ name: '', email: '', phone: '', company: '', message: '' });
+    } catch {
+      setContactFeedback({
+        kind: 'error',
+        text: 'La connexion au serveur d’envoi a échoué. Vous pouvez aussi nous joindre directement à contact@sali-digicom.com.',
+      });
+    } finally {
+      setContactSending(false);
+    }
+  };
+
+  const activePole = POLES[activePoleIndex] || POLES[0];
 
   return (
-    <div className="absolute inset-0 bg-[#0b0f19] text-white overflow-hidden w-full h-full" dir={activeLang === 'ar' ? 'rtl' : 'ltr'}>
-      {/* Slide Transition Wrapper */}
-      <div 
-        className="w-full h-full transition-transform duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] will-change-transform"
-        style={{ transform: `translateY(-${currentSection * 100}%)` }}
-      >
-        {/* PARALLAX SCREEN 0: PRESENTATION OF DIGICOM (Hero) */}
-        <section id="digicom-presentation" className={`relative h-[100dvh] flex items-center justify-center px-[5vw] overflow-hidden ${sectionPadds}`}>
-          <div className="absolute inset-0 z-0 bg-[#ebf1f8]">
-            <img 
-              src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1200" 
-              className="w-full h-full object-cover filter brightness-110 contrast-100 opacity-60" 
-              alt="SALI DigiCom" 
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute inset-0 bg-[#ebf1f8]/70 backdrop-blur-[6px]" />
-          </div>
+    <div className="w-full">
+      {/* =====================================================================
+          SEQUENCE 1 — HERO FULL OFF-SCREEN CURTAIN SPLIT (section#intro.c-intro)
+         ===================================================================== */}
+      <section id="intro" ref={introRef} className="dc-intro">
+        <div className="dc-intro-sticky">
+          <div className="dc-container dc-intro-top-row">
+            <div ref={topWordRef} className="dc-word-monument dc-word-monument--top">
+              <SplitChars word="SALI" baseDelay={0.08} rollOnHover revealed={isReady} />
+            </div>
 
-          <div className="relative z-10 flex flex-col items-center justify-center text-center max-w-4xl mx-auto py-12">
-            <div className="ae ae-pop flex flex-col items-center mb-6" data-d="1">
-              <Logo 
-                variant="digicom" 
-                type="icon" 
-                className="w-36 h-36 md:w-44 md:h-44 object-contain filter drop-shadow-sm select-none" 
+            <div className="shrink-0">
+              <MagneticCta
+                label="Démarrer un projet"
+                onClick={scrollToContactDirect}
+                offsetX={heroCtaMotion.x}
+                fadeOpacity={heroCtaMotion.opacity}
               />
             </div>
+          </div>
 
-            <p 
-              className="ae ae-up text-lg md:text-xl lg:text-2xl text-[#1c2c46] font-bold tracking-wide leading-relaxed max-w-2xl"
-              data-d="2"
-              style={{ textShadow: '0 2px 4px rgba(235, 241, 248, 0.5)' }}
+          <div className="dc-container dc-intro-bottom-row">
+            <div className="max-w-sm">
+              <h1
+                className="dc-hero-h1"
+                aria-label="L’agence qui façonne votre présence digitale."
+              >
+                <span className="dc-line-mask block" aria-hidden="true">
+                  <span
+                    ref={(el) => {
+                      heroLineRefs.current[0] = el;
+                    }}
+                    className="dc-hero-line block"
+                    style={{ transitionDelay: '0.16s' }}
+                  >
+                    L’agence qui façonne
+                  </span>
+                </span>
+                <span className="dc-line-mask block" aria-hidden="true">
+                  <span
+                    ref={(el) => {
+                      heroLineRefs.current[1] = el;
+                    }}
+                    className="dc-hero-line block"
+                    style={{ transitionDelay: '0.24s' }}
+                  >
+                    votre présence digitale.
+                  </span>
+                </span>
+              </h1>
+              <p
+                className="mt-3 text-[16px] leading-relaxed text-[#9a9a9a]"
+                aria-label="Plateformes web, identité visuelle et acquisition à Casablanca."
+              >
+                <span className="dc-line-mask block" aria-hidden="true">
+                  <span
+                    ref={(el) => {
+                      heroLineRefs.current[2] = el;
+                    }}
+                    className="dc-hero-line block"
+                    style={{ transitionDelay: '0.32s' }}
+                  >
+                    Plateformes web, identité visuelle
+                  </span>
+                </span>
+                <span className="dc-line-mask block" aria-hidden="true">
+                  <span
+                    ref={(el) => {
+                      heroLineRefs.current[3] = el;
+                    }}
+                    className="dc-hero-line block"
+                    style={{ transitionDelay: '0.40s' }}
+                  >
+                    et acquisition à Casablanca.
+                  </span>
+                </span>
+              </p>
+            </div>
+
+            <div ref={bottomWordRef} className="dc-word-monument dc-word-monument--bottom">
+              <SplitChars word="DigiCom" baseDelay={0.18} rollOnHover revealed={isReady} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================================
+          SEQUENCE 2 — EDITORIAL STATEMENT + PARALLAX MAGNETIC CTA (b-content-button)
+         ===================================================================== */}
+      <section ref={statementSecRef} className="dc-section-space">
+        <div className="dc-container-inset">
+          <div className="dc-statement-grid">
+            <SplitLines
+              as="p"
+              className="dc-statement max-w-[34ch]"
+              lines={[
+                'Nous dessinons et développons',
+                'des plateformes web sur mesure',
+                'conçues pour la conversion.',
+              ]}
+            />
+            <div>
+              <MagneticCta
+                label="Simuler un site"
+                offsetY={statementCtaY}
+                onClick={() => onOpenQuestionnaire('website')}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================================
+          SEQUENCE 3 — PANORAMIC SHOWCASE STAGE & CURSOR-CHASING DIAMOND (b-video)
+         ===================================================================== */}
+      <section id="atelier" className="bg-[#1C2C46] pb-16 md:pb-28">
+        <div className="dc-container-inset">
+          <div ref={videoInView.ref}>
+            <div
+              ref={videoStageRef}
+              onClick={toggleShowreel}
+              className={`dc-video-stage ${videoInView.inView ? 'is-inview' : ''}`}
             >
-              {t.digicom.heroSubtitle}
-            </p>
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                poster="/assets/sali-digicom-showreel-poster.jpg"
+                className="dc-video-media"
+                aria-hidden="true"
+              >
+                <source src="/assets/sali-digicom-showreel.webm" type="video/webm" />
+                <source src="/assets/sali-digicom-showreel.mp4" type="video/mp4" />
+              </video>
+              <div className="dc-video-scrim" />
 
-            {!isDigiComDomain && (
-              <div className="ae ae-up mt-8" data-d="3">
-                <a 
-                  href="https://www.sali-digicom.com"
-                  className="inline-flex items-center bg-[#1d9878] text-white px-8 py-3.5 text-[10px] font-bold tracking-[2px] uppercase transition-all hover:bg-[#157159]"
-                  style={{ clipPath: 'polygon(0 0, calc(100% - 11px) 0, 100% 11px, 100% 100%, 11px 100%, 0 calc(100% - 11px))' }}
+              <button
+                ref={videoFollowerRef}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleShowreel();
+                }}
+                aria-label={isVideoPlaying ? 'Mettre la vidéo en pause' : 'Lancer la vidéo'}
+                className={`dc-video-diamond-btn ${isVideoPlaying ? 'is-playing' : ''}`}
+              >
+                <svg
+                  width="74"
+                  height="74"
+                  viewBox="0 0 63 63"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
                 >
-                  {activeLang === 'ar' ? 'لمعرفة المزيد' : activeLang === 'en' ? 'Learn More' : 'En savoir plus'}
+                  <path
+                    d="M24.5124 2.84309C28.2917 -0.936244 34.4192 -0.936244 38.1986 2.84309L59.8677 24.5122C63.647 28.2916 63.6471 34.4191 59.8677 38.1984L38.1986 59.8676C34.4192 63.6469 28.2917 63.6469 24.5124 59.8676L2.84322 38.1984C-0.936114 34.4191 -0.936111 28.2916 2.84322 24.5122L24.5124 2.84309Z"
+                    fill="#FFFFFF"
+                  />
+                </svg>
+                <span className="dc-video-diamond-label">
+                  <span className="dc-video-label-mask">
+                    <span className="dc-video-label-track">
+                      <span>Pause</span>
+                      <span>Lecture</span>
+                    </span>
+                  </span>
+                </span>
+              </button>
+            </div>
+
+            {/* Légende épurée sous la vidéo (zéro obstruction sur le showreel) */}
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-6 px-2">
+              <div>
+                <p className="text-base text-white font-bold">
+                  Studio SALI DigiCom, filiale digitale de SALI Capital Group
+                </p>
+                <p className="text-sm text-[#B8C7DA] mt-0.5">
+                  Direction artistique, ingénierie front-end et stratégie d’acquisition unifiées.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => onOpenQuestionnaire('website')}
+                className="dc-pill-btn"
+              >
+                <span className="dc-pill-btn-fill" />
+                <span className="dc-pill-btn-content">
+                  <span>Obtenir un chiffrage</span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================================
+          SEQUENCE 4 — STICKY KINETIC SENTENCE SCRUBBED OVER 3D PRISM (b-sentence)
+         ===================================================================== */}
+      <section id="sentence" ref={sentenceRef} className="dc-sentence">
+        <div className="dc-sentence-sticky">
+          <div className="dc-container-inset flex justify-center">
+            <p
+              className="dc-statement max-w-[33ch] text-center"
+              aria-label={SENTENCE_LINES.join(' ')}
+            >
+              {SENTENCE_LINES.map((line, i) => (
+                <span key={line} className="dc-line-mask block" aria-hidden="true">
+                  <span
+                    ref={(el) => {
+                      sentenceLineRefs.current[i] = el;
+                    }}
+                    className="dc-sentence-line block"
+                  >
+                    {line}
+                  </span>
+                </span>
+              ))}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================================
+          SEQUENCE 5 — PINNED 3D Z-SPACE TUNNEL GALLERY & PRISM CTA (chunk-500)
+         ===================================================================== */}
+      <section id="poles" ref={tunnelSecRef} className="dc-tunnel-section bg-[#1C2C46]">
+        {/* Desktop Pinned 3D Z-Corridor (>= 1024px) */}
+        <div className="dc-tunnel-sticky">
+          {/* 3D Perspective Multi-Card Constellations flying past the 360°-spinning SD Diamond */}
+          <div className="dc-tunnel-stage" aria-label="Galerie 3D des réalisations SALI DigiCom">
+            {PORTFOLIO_PROJECTS.map((proj, idx) => (
+              <button
+                key={`tunnel-${proj.id}`}
+                ref={(el) => {
+                  tunnelPlateRefs.current[idx] = el;
+                }}
+                type="button"
+                onMouseEnter={() => {
+                  hoveredPoleRef.current = idx;
+                  if (idx !== activePoleRef.current) {
+                    setPoleSwitchDir(idx > activePoleRef.current ? 1 : -1);
+                    activePoleRef.current = idx;
+                    setActivePoleIndex(idx);
+                  }
+                }}
+                onMouseLeave={() => {
+                  hoveredPoleRef.current = null;
+                }}
+                onFocus={() => {
+                  hoveredPoleRef.current = idx;
+                  activePoleRef.current = idx;
+                  setActivePoleIndex(idx);
+                }}
+                onBlur={() => {
+                  hoveredPoleRef.current = null;
+                }}
+                onClick={() => handleOpenProject(proj)}
+                className="dc-tunnel-plate group"
+                aria-label={`Étude de cas : ${proj.title}`}
+              >
+                {/* 1 Projet = 1 Image de présentation propre, plein format & 100% couleur réelle */}
+                <div className="dc-tunnel-single-card">
+                  <img
+                    src={proj.primaryImage}
+                    alt={proj.title}
+                    loading="eager"
+                    className="w-full h-full object-cover select-none"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#1C2C46]/90 via-[#1C2C46]/20 to-transparent" />
+                  <div className="absolute bottom-5 left-6 right-6 flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-bold text-[#1D9878] uppercase tracking-wider block">
+                        {proj.categoryLabel} · {proj.city}
+                      </span>
+                      <p className="text-xl md:text-2xl font-extrabold text-white mt-1 truncate">
+                        {proj.title}
+                      </p>
+                    </div>
+                    <span className="hidden sm:inline-flex text-xs font-semibold text-white/80 group-hover:text-white group-hover:translate-x-1 transition-all items-center gap-1.5">
+                      <span>Découvrir</span>
+                      <svg className="w-4 h-4 text-[#1D9878]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Sticky HUD Overlay (.b-project-gallery-fixed) */}
+          <div className="dc-container dc-tunnel-hud">
+            <div className="dc-tunnel-hud-top">
+              <div>
+                <SuptitleTag label="Portfolio Réel & Constellation 3D" />
+                <h2 className="dc-h2">Nos Réalisations Clientes</h2>
+              </div>
+
+              <div className="flex items-center gap-6 pointer-events-auto">
+                {/* Circular progress gauge */}
+                <div className="flex items-center gap-3">
+                  <div className="relative w-12 h-12 flex items-center justify-center">
+                    <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
+                      <circle cx="18" cy="18" r="15" fill="none" stroke="#243757" strokeWidth="2.5" />
+                      <circle
+                        cx="18"
+                        cy="18"
+                        r="15"
+                        fill="none"
+                        stroke="#1D9878"
+                        strokeWidth="2.5"
+                        strokeDasharray={94.2}
+                        strokeDashoffset={94.2 * (1 - (activePoleIndex + 1) / PORTFOLIO_PROJECTS.length)}
+                        className="transition-all duration-500 ease-out"
+                      />
+                    </svg>
+                    <span className="absolute text-xs font-bold text-white">
+                      0{activePoleIndex + 1}
+                    </span>
+                  </div>
+                  <span className="text-xs uppercase tracking-wider text-[#B8C7DA]">
+                    / 0{PORTFOLIO_PROJECTS.length}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsGalleryOpen(true)}
+                  className="hidden md:inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full border border-[#243757] hover:border-[#1D9878] bg-[#131F33]/90 text-xs font-bold text-white uppercase tracking-wider hover:bg-[#1D9878]/15 transition-all shadow-lg"
+                >
+                  <svg className="w-4 h-4 text-[#1D9878]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                  </svg>
+                  <span>Toutes nos réalisations</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="dc-tunnel-hud-bottom">
+              {/* Stacked Masked Directional Project Titles & Summaries */}
+              <div className="dc-tunnel-title-stack" aria-live="polite">
+                {PORTFOLIO_PROJECTS.map((proj, idx) => {
+                  const isCurrent = idx === activePoleIndex;
+                  const inactiveY =
+                    idx < activePoleIndex
+                      ? -108
+                      : idx > activePoleIndex
+                        ? 108
+                        : poleSwitchDir > 0
+                          ? -108
+                          : 108;
+                  return (
+                    <div
+                      key={`hud-title-${proj.id}`}
+                      className={`dc-tunnel-title-item ${isCurrent ? 'is-active' : ''}`}
+                      aria-hidden={!isCurrent}
+                    >
+                      <div className="dc-line-mask">
+                        <span className="text-xs uppercase tracking-widest text-[#1D9878] font-bold block mb-1">
+                          {proj.categoryLabel} · {proj.city}
+                        </span>
+                        <p
+                          className="text-[26px] xl:text-[34px] text-white font-extrabold leading-tight dc-tunnel-mask-line"
+                          style={{
+                            transform: `translate3d(0, ${isCurrent ? 0 : inactiveY}%, 0)`,
+                          }}
+                        >
+                          {proj.title}
+                        </p>
+                      </div>
+                      <div className="dc-line-mask mt-2">
+                        <p
+                          className="text-[15px] text-[#B8C7DA] max-w-[46ch] dc-tunnel-mask-line"
+                          style={{
+                            transform: `translate3d(0, ${isCurrent ? 0 : inactiveY}%, 0)`,
+                            transitionDelay: isCurrent ? '0.06s' : '0s',
+                          }}
+                        >
+                          {proj.excerpt}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Scroll-Scrubbed 160x160 Magnetic Rounded-Diamond Prism CTA */}
+              <div className="pointer-events-auto">
+                <MagneticPrismCta
+                  label="Voir l'étude"
+                  ariaLabel={`Voir l'étude de cas ${PORTFOLIO_PROJECTS[activePoleIndex]?.title || ''}`}
+                  dashOffset={prismDashOffset}
+                  onClick={() => handleOpenProject(PORTFOLIO_PROJECTS[activePoleIndex])}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tablet & Mobile Ergonomic Showcase (< 1024px) */}
+        <div className="dc-mobile-poles dc-container-inset">
+          <div className="mb-10">
+            <SuptitleTag label="Portfolio Réel" />
+            <h2 className="dc-h2">Nos Réalisations Clientes</h2>
+            <p className="text-[15px] text-[#B8C7DA] mt-3 max-w-[42ch]">
+              Découvrez nos productions concrètes pour CAP Investment, Gueliz Properties, Imtiaz Taamine, Axeon et CAP'ASSUR.
+            </p>
+          </div>
+
+          <div className="dc-gallery-grid">
+            {PORTFOLIO_PROJECTS.map((proj, idx) => (
+              <button
+                key={`mob-${proj.id}`}
+                type="button"
+                onClick={() => {
+                  setActivePoleIndex(idx);
+                  handleOpenProject(proj);
+                }}
+                className="dc-gallery-plate group text-left rounded-2xl overflow-hidden border border-[#243757] bg-[#131F33]"
+              >
+                <div className="relative aspect-[16/10] overflow-hidden">
+                  <img
+                    src={proj.primaryImage}
+                    alt={proj.title}
+                    loading="lazy"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  {proj.whiteLogo && (
+                    <div className="absolute bottom-3 right-3 p-2 rounded-lg bg-[#131F33]/85 backdrop-blur-md border border-[#243757]">
+                      <img src={proj.whiteLogo} alt="" className="h-5 w-auto object-contain" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-5">
+                  <span className="text-xs font-bold text-[#1D9878] uppercase tracking-wider">
+                    {proj.categoryLabel} · {proj.city}
+                  </span>
+                  <p className="text-xl font-bold text-white mt-1">
+                    {proj.title}
+                  </p>
+                  <p className="mt-2 text-xs text-[#B8C7DA] line-clamp-2">
+                    {proj.excerpt}
+                  </p>
+                  <div className="mt-4 flex items-center justify-between text-xs text-[#1D9878] font-semibold">
+                    <span>Explorer l'étude</span>
+                    <span>→</span>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-10 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setIsGalleryOpen(true)}
+              className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-[#131F33] hover:bg-[#1D9878] text-white border border-[#243757] hover:border-[#1D9878] font-bold text-sm tracking-wide transition-all shadow-lg"
+            >
+              <span>Découvrir toutes nos réalisations</span>
+              <span className="w-2 h-2 rotate-45 bg-[#1D9878]" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================================
+          « ILS NOUS FONT CONFIANCE » — LOGOS CLIENTS ÉPURES SANS CADRE NI BOÎTE
+         ===================================================================== */}
+      <section id="confiance" className="py-24 bg-[#1C2C46]">
+        <div className="dc-container-inset">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <SuptitleTag label="Partenariats & Références" />
+            <h2 className="dc-h2 mt-3">Ils nous font confiance</h2>
+            <p className="text-sm md:text-base text-[#B8C7DA] mt-3">
+              Des entreprises d'envergure qui confient leur présence digitale, leurs plateformes et leur image de marque à SALI DigiCom.
+            </p>
+          </div>
+
+          {/* Grille épurée : 5 logos monochromes sur 1 ligne fluide directement sur le fond Bleu Nuit #1C2C46 sans aucun cadre */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 items-start justify-items-center gap-8 lg:gap-10 max-w-6xl mx-auto">
+            {CLIENT_LOGOS.map((client) => (
+              <button
+                key={client.name}
+                type="button"
+                onClick={() => {
+                  const proj = PORTFOLIO_PROJECTS.find((p) => p.id === client.projectId);
+                  if (proj) handleOpenProject(proj);
+                }}
+                className="group flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 cursor-pointer bg-transparent border-0 p-0 focus:outline-none w-full max-w-[180px]"
+                aria-label={`Client ${client.name} - ${client.sector}`}
+              >
+                <div className="h-16 w-full flex items-center justify-center">
+                  <img
+                    src={client.logo}
+                    alt={`Logo ${client.name}`}
+                    className="max-h-12 w-auto max-w-[140px] md:max-w-[155px] object-contain opacity-75 group-hover:opacity-100 transition-opacity duration-300 select-none"
+                  />
+                </div>
+                <span className="text-xs font-semibold text-[#B8C7DA] group-hover:text-white mt-3 text-center transition-colors">
+                  {client.name}
+                </span>
+                <span className="text-[10px] uppercase tracking-wider text-[#1D9878] mt-0.5 text-center">
+                  {client.sector}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================================
+          SEQUENCE 6 — SERVICES DIRECTIONAL IMAGE CURTAIN & HOLLOW METRICS
+         ===================================================================== */}
+      <section id="expertises" className="dc-section-space bg-[#1C2C46]">
+        <div className="dc-container-inset">
+          <div className="dc-services-layout">
+            {/* Left vertical architectural frame with double-counter-slide curtain (chunk-46.js) */}
+            <div className="dc-services-visual">
+              {EXPERTISES.map((exp, idx) => (
+                <div
+                  key={exp.title}
+                  ref={(el) => {
+                    serviceSlideRefs.current[idx] = el;
+                  }}
+                  className="dc-service-slide"
+                >
+                  <img
+                    ref={(el) => {
+                      serviceImgRefs.current[idx] = el;
+                    }}
+                    src={exp.image}
+                    alt={exp.alt}
+                    loading="lazy"
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Right borderless typographic list with sibling dimming & accordion reveal */}
+            <div>
+              <SuptitleTag label="Savoir-faire" />
+              <SplitLines as="h2" className="dc-h2" lines={['Nos expertises']} />
+
+              <div className="dc-service-list">
+                {EXPERTISES.map((item, idx) => {
+                  const isCurrent = idx === activeExpertise;
+                  return (
+                    <button
+                      key={item.title}
+                      type="button"
+                      onMouseEnter={() => switchExpertise(idx)}
+                      onFocus={() => switchExpertise(idx)}
+                      onClick={() => switchExpertise(idx)}
+                      className={`dc-service-row ${isCurrent ? 'is-active' : ''}`}
+                    >
+                      <span className="dc-service-row-base" aria-hidden="true" />
+                      <span className="dc-service-title">
+                        <span>{item.title}</span>
+                      </span>
+                      <span className={`dc-service-desc-grid ${isCurrent ? 'is-open' : ''}`}>
+                        <span className="dc-service-desc-inner">{item.detail}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="mt-10">
+                <MagneticCta
+                  label="Configurer une offre"
+                  onClick={() => onOpenQuestionnaire('website')}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Hollow Stroked Key Figures (.b-skf — chunk-842.js staggered char rise + parallax) */}
+          <div ref={skfWrap.ref} className="dc-skf-grid">
+            <div
+              ref={(el) => {
+                skfColRefs.current[0] = el;
+              }}
+              className="dc-skf-item"
+            >
+              <span className="dc-hollow-num">
+                <SplitChars word="4" baseDelay={0.04} stagger={0.05} revealed={skfWrap.inView} />
+              </span>
+              <SplitLines
+                as="p"
+                className="text-[16px] text-white"
+                lines={['Pôles complémentaires intégrés au studio']}
+              />
+              <p className="text-[16px] text-[#9a9a9a] mt-1 max-w-[38ch]">
+                Web, identité visuelle, acquisition sociale et automatisation réunis sous une même direction.
+              </p>
+            </div>
+
+            <div
+              ref={(el) => {
+                skfColRefs.current[1] = el;
+              }}
+              className="dc-skf-item"
+            >
+              <span className="dc-hollow-num">
+                <SplitChars word="100%" baseDelay={0.14} stagger={0.045} revealed={skfWrap.inView} />
+              </span>
+              <SplitLines
+                as="p"
+                className="text-[16px] text-white"
+                lines={['Architectures conçues sur mesure']}
+              />
+              <p className="text-[16px] text-[#9a9a9a] mt-1 max-w-[38ch]">
+                Aucun gabarit générique : chaque interface et chaque tunnel sont calibrés pour vos objectifs.
+              </p>
+            </div>
+
+            <div
+              ref={(el) => {
+                skfColRefs.current[2] = el;
+              }}
+              className="dc-skf-item"
+            >
+              <span className="dc-hollow-num">
+                <SplitChars word="24h" baseDelay={0.24} stagger={0.045} revealed={skfWrap.inView} />
+              </span>
+              <SplitLines
+                as="p"
+                className="text-[16px] text-white"
+                lines={['Délai maximal de premier retour']}
+              />
+              <p className="text-[16px] text-[#9a9a9a] mt-1 max-w-[38ch]">
+                Analyse rapide de votre cahier des charges et proposition d’accompagnement structurée.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================================
+          SEQUENCE 7 — INTERACTIVE DIAMOND REQUEST SELECTOR (t-forms)
+         ===================================================================== */}
+      <section id="contact" className="dc-section-space">
+        <div className="dc-container-inset">
+          <div>
+            <SuptitleTag label="Contact" />
+            <SplitLines as="h2" className="dc-h2" lines={['Que recherchez-vous ?']} />
+
+            <div className="dc-choices-list" role="radiogroup" aria-label="Type de demande">
+              <button
+                type="button"
+                onClick={() => handleChoiceSelect('website')}
+                className={`dc-choice-btn ${selectedChoice === 'website' ? 'is-selected' : ''}`}
+              >
+                <span className="dc-choice-diamond" aria-hidden="true" />
+                <span>Lancer le configurateur Site Web</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleChoiceSelect('community')}
+                className={`dc-choice-btn ${selectedChoice === 'community' ? 'is-selected' : ''}`}
+              >
+                <span className="dc-choice-diamond" aria-hidden="true" />
+                <span>Lancer le configurateur Social Media</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedChoice('direct')}
+                className={`dc-choice-btn ${selectedChoice === 'direct' ? 'is-selected' : ''}`}
+              >
+                <span className="dc-choice-diamond" aria-hidden="true" />
+                <span>Écrire directement au studio</span>
+              </button>
+            </div>
+
+            {/* Direct Pure-Monochrome Studio Brief Form (POST /api/send-email) */}
+            <form onSubmit={handleDirectSubmit} className="dc-direct-form" noValidate>
+              <div className="dc-field-grid">
+                <div className="dc-field-wrap">
+                  <label htmlFor="dc-name" className="sr-only">
+                    Votre nom complet
+                  </label>
+                  <input
+                    id="dc-name"
+                    type="text"
+                    required
+                    placeholder="Votre nom complet *"
+                    value={contactForm.name}
+                    onChange={(e) => setContactForm((p) => ({ ...p, name: e.target.value }))}
+                    className="dc-input"
+                  />
+                  <span className="dc-field-focus-line" aria-hidden="true" />
+                </div>
+
+                <div className="dc-field-wrap">
+                  <label htmlFor="dc-email" className="sr-only">
+                    Adresse e-mail professionnelle
+                  </label>
+                  <input
+                    id="dc-email"
+                    type="email"
+                    required
+                    placeholder="Adresse e-mail *"
+                    value={contactForm.email}
+                    onChange={(e) => setContactForm((p) => ({ ...p, email: e.target.value }))}
+                    className="dc-input"
+                  />
+                  <span className="dc-field-focus-line" aria-hidden="true" />
+                </div>
+
+                <div className="dc-field-wrap">
+                  <label htmlFor="dc-phone" className="sr-only">
+                    Numéro de téléphone ou WhatsApp
+                  </label>
+                  <input
+                    id="dc-phone"
+                    type="tel"
+                    placeholder="Téléphone / WhatsApp"
+                    value={contactForm.phone}
+                    onChange={(e) => setContactForm((p) => ({ ...p, phone: e.target.value }))}
+                    className="dc-input"
+                  />
+                  <span className="dc-field-focus-line" aria-hidden="true" />
+                </div>
+
+                <div className="dc-field-wrap">
+                  <label htmlFor="dc-company" className="sr-only">
+                    Société ou organisation
+                  </label>
+                  <input
+                    id="dc-company"
+                    type="text"
+                    placeholder="Entreprise ou marque"
+                    value={contactForm.company}
+                    onChange={(e) => setContactForm((p) => ({ ...p, company: e.target.value }))}
+                    className="dc-input"
+                  />
+                  <span className="dc-field-focus-line" aria-hidden="true" />
+                </div>
+              </div>
+
+              <div className="mt-7 dc-field-wrap">
+                <label htmlFor="dc-message" className="sr-only">
+                  Décrivez votre projet
+                </label>
+                <textarea
+                  id="dc-message"
+                  rows={3}
+                  required
+                  placeholder="Décrivez votre projet, vos objectifs et l’échéance souhaitée *"
+                  value={contactForm.message}
+                  onChange={(e) => setContactForm((p) => ({ ...p, message: e.target.value }))}
+                  className="dc-textarea"
+                />
+                <span className="dc-field-focus-line" aria-hidden="true" />
+              </div>
+
+              {contactFeedback.kind !== 'idle' && (
+                <p
+                  role="status"
+                  className={`mt-5 text-[15px] ${
+                    contactFeedback.kind === 'success' ? 'text-white' : 'text-[#d4d4d4]'
+                  }`}
+                >
+                  {contactFeedback.text}
+                </p>
+              )}
+
+              <div className="mt-10 flex flex-wrap items-center justify-between gap-6">
+                <p className="text-[16px] text-[#9a9a9a] max-w-[36ch]">
+                  Besoin d’un chiffrage guidé étape par étape ? Cliquez sur l’un des deux configurateurs ci-dessus.
+                </p>
+                <MagneticCta
+                  type="submit"
+                  disabled={contactSending}
+                  label={contactSending ? 'Envoi...' : 'Envoyer le brief'}
+                />
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================================
+          SEQUENCE 8 — ANGLED PRISM ROOF & MONUMENTAL FOOTER (footer.footer)
+         ===================================================================== */}
+      <svg
+        className="dc-footer-roof"
+        width="1440"
+        height="235"
+        viewBox="0 0 1440 235"
+        fill="none"
+        preserveAspectRatio="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <path
+          d="M737.354 1.76012L1440 108.881L1440 235L0 235L1.10257e-05 108.881L701.146 1.76574C713.145 -0.0674311 725.354 -0.0693221 737.354 1.76012Z"
+          fill="url(#dcFooterRoofGrad)"
+        />
+        <defs>
+          <linearGradient
+            id="dcFooterRoofGrad"
+            x1="720"
+            y1="215"
+            x2="720"
+            y2="0"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop stopColor="#162338" />
+            <stop offset="1" stopColor="#1C2C46" />
+          </linearGradient>
+        </defs>
+      </svg>
+
+      <footer className="dc-footer">
+        <div className="dc-container-inset">
+          <div className="dc-footer-grid">
+            <div>
+              <p className="text-[18px] text-white mb-2">Où nous trouver</p>
+              <a
+                ref={cityLinkRef}
+                href="mailto:contact@sali-digicom.com"
+                onMouseEnter={() => {
+                  cityHoverRef.current = true;
+                }}
+                onMouseLeave={() => {
+                  cityHoverRef.current = false;
+                }}
+                className="dc-hollow-city"
+              >
+                Casablanca
+              </a>
+              <div className="mt-4">
+                <img
+                  src="/logo-digicom-white-horizontal.png"
+                  alt="SALI DigiCom"
+                  className="h-7 w-auto opacity-80"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col items-start md:items-end gap-3 text-[16px]">
+              <a href="tel:+212713370946" className="text-white hover:opacity-75 transition-opacity">
+                +212 713-370946
+              </a>
+              <a
+                href="mailto:contact@sali-digicom.com"
+                className="text-white hover:opacity-75 transition-opacity"
+              >
+                contact@sali-digicom.com
+              </a>
+              <p className="text-[#B8C7DA]">Casablanca, Maroc</p>
+              <div className="mt-2">
+                <a
+                  href="https://salicapitalgroup.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="dc-pill-btn"
+                >
+                  <span className="dc-pill-btn-fill" />
+                  <span className="dc-pill-btn-content">
+                    <span>SALI Capital Group</span>
+                  </span>
                 </a>
               </div>
-            )}
-          </div>
-        </section>
-
-        {isDigiComDomain && (
-          <>
-
-        {/* PARALLAX SCREEN 1: WEB DEPARTMENT */}
-        <section id="digicom-services-1a" className="relative h-[100dvh] bg-[#ebf1f8] overflow-hidden text-[#1c2c46]">
-          <div className="absolute inset-0 z-0 h-full w-full">
-            <img 
-              src="https://images.unsplash.com/photo-1542744094-3a31f103e35f?auto=format&fit=crop&q=80&w=1200" 
-              alt="Web Design & Development" 
-              className="w-full h-full object-cover select-none opacity-55 brightness-110 contrast-100" 
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute inset-0 bg-[#ebf1f8]/60 backdrop-blur-[6px]" />
-          </div>
-
-          <div className={`relative z-10 w-full h-full overflow-y-auto pt-24 pb-20 lg:py-12 px-[5vw] ${sectionPadds}`}>
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center justify-center w-full max-w-7xl mx-auto min-h-full lg:h-full px-4 pt-12 lg:pt-0">
-              <div className="lg:col-span-12 flex flex-col justify-center lg:h-full p-4 lg:p-12">
-                <span className="ae ae-left text-[10px] font-bold tracking-[3.5px] uppercase text-[#1d9878] bg-[#1d9878]/10 border border-[#1d9878]/20 px-4 py-1.5 rounded-full mb-5 inline-block self-start" data-d="1">
-                  SALI DIGICOM
-                </span>
-                <h1 className="ae ae-left text-3xl lg:text-4.5xl font-black tracking-tight leading-none text-[#1c2c46] mb-5" data-d="1.5">
-                  {t.digicom.webTitle}
-                </h1>
-                <p className="ae ae-left text-[12.5px] text-[#2d3e56] leading-relaxed max-w-lg mb-6" data-d="2.5">
-                  {t.digicom.webDesc}
-                </p>
-                <div className="ae ae-left mb-4" data-d="2.8">
-                  <button 
-                    onClick={() => onOpenQuestionnaire?.('website')}
-                    className="inline-flex items-center bg-[#1c2c46] hover:bg-[#1d9878] text-white px-6 py-3 text-[9.5px] font-bold tracking-[2px] uppercase transition-all self-start cursor-pointer relative z-10" 
-                    style={{ clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))' }} 
-                  >
-                    Obtenir un devis site web personnalisé
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5 mt-2">
-                  {webServices.map((item, index) => (
-                    <div 
-                      key={index}
-                      className="ae ae-pop bg-white border border-[#d3dfed] p-5 rounded-2xl relative hover:border-[#1d9878] hover:bg-white hover:shadow-xl transition-all duration-300 group shadow-md"
-                      data-d={index + 3}
-                    >
-                      <div className="flex items-center gap-3.5 mb-2.5">
-                        <div className="w-10 h-10 bg-[#1d9878]/10 border border-[#1d9878]/15 rounded-lg flex items-center justify-center text-[#1d9878] group-hover:scale-110 transition-transform">
-                          {item.icon}
-                        </div>
-                        <h3 className="text-[13px] font-bold text-[#1c2c46] group-hover:text-[#1d9878] transition-colors leading-tight">{item.title}</h3>
-                      </div>
-                      <p className="text-[11px] text-[#2d3e56]/90 leading-tight">
-                        {item.desc}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
-        </section>
 
-        {/* PARALLAX SCREEN 2: BRANDING DEPARTMENT */}
-        <section id="digicom-services-1b" className="relative h-[100dvh] bg-[#ebf1f8] overflow-hidden text-[#1c2c46]">
-          <div className="absolute inset-0 z-0 h-full w-full">
-            <img 
-              src="https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&q=80&w=1200" 
-              alt="Brand Design & Visual Identity" 
-              className="w-full h-full object-cover select-none opacity-55 brightness-110 contrast-100" 
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute inset-0 bg-[#ebf1f8]/60 backdrop-blur-[6px]" />
+          <div className="dc-footer-bottom text-[16px] text-[#9a9a9a]">
+            <p>© {new Date().getFullYear()} SALI DigiCom. Tous droits réservés.</p>
+            <p className="max-w-[54ch]">
+              Photographies &amp; séquences architecturales sous licence libre : Dietmar Rabich, A S M Jobaer, Basile Morin (CC BY-SA 4.0) et Peter Tomaszewicz (CC BY 3.0) via Wikimedia Commons.
+            </p>
           </div>
+        </div>
 
-          <div className={`relative z-10 w-full h-full overflow-y-auto pt-24 pb-20 lg:py-12 px-[5vw] ${sectionPadds}`}>
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center justify-center w-full max-w-7xl mx-auto min-h-full lg:h-full px-4 pt-12 lg:pt-0">
-              <div className="lg:col-span-12 flex flex-col justify-center lg:h-full p-4 lg:p-12">
-                <span className="ae ae-left text-[10px] font-bold tracking-[3.5px] uppercase text-[#1d9878] bg-[#1d9878]/10 border border-[#1d9878]/20 px-4 py-1.5 rounded-full mb-5 inline-block self-start" data-d="1">
-                  SALI DIGICOM
-                </span>
-                <h1 className="ae ae-left text-3xl lg:text-4.5xl font-black tracking-tight leading-none text-[#1c2c46] mb-5" data-d="1.5">
-                  {t.digicom.brandingTitle}
-                </h1>
-                <p className="ae ae-left text-[12.5px] text-[#2d3e56] leading-relaxed max-w-lg mb-6" data-d="2.5">
-                  {t.digicom.brandingDesc}
-                </p>
+        {/* Floating Cursor-Following Monochrome Casablanca Studio Card (Q.prototype) */}
+        <div ref={cityCardRef} className="dc-city-preview" aria-hidden="true">
+          <img
+            src="/assets/perth-au-elizabeth-quay-bridge-2019-0375.jpg"
+            alt=""
+          />
+          <span className="dc-city-preview-caption">Studio Casablanca</span>
+        </div>
+      </footer>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-5 mt-2">
-                  {brandingServices.map((item, index) => (
-                    <div 
-                      key={index}
-                      className="ae ae-pop bg-white border border-[#d3dfed] p-5 rounded-2xl relative hover:border-[#1d9878] hover:bg-white hover:shadow-xl transition-all duration-300 group shadow-md"
-                      data-d={index + 3}
-                    >
-                      <div className="flex items-center gap-3.5 mb-2.5">
-                        <div className="w-10 h-10 bg-[#1d9878]/10 border border-[#1d9878]/15 rounded-lg flex items-center justify-center text-[#1d9878] group-hover:scale-110 transition-transform">
-                          {item.icon}
-                        </div>
-                        <h3 className="text-[13px] font-bold text-[#1c2c46] group-hover:text-[#1d9878] transition-colors leading-tight">{item.title}</h3>
-                      </div>
-                      <p className="text-[11px] text-[#2d3e56]/90 leading-tight">
-                        {item.desc}
-                      </p>
-                    </div>
-                  ))}
+      {/* =====================================================================
+          MONOCHROME POLE DETAIL DRAWER / MODAL
+         ===================================================================== */}
+      {inspectedPole && (
+        <div
+          data-ui="pole-detail-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label={inspectedPole.title}
+          className="fixed inset-0 z-[95] bg-[#131F33]/92 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 dc-modal-enter"
+          onClick={() => setInspectedPole(null)}
+        >
+          <div
+            className="w-full max-w-2xl bg-[#0e0e0e] border border-[#363636] p-7 sm:p-10 text-white relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-6">
+              <div>
+                <div className="dc-diamond-tag is-inview">
+                  <span className="dc-diamond-tag-dot" aria-hidden="true" />
+                  <span>{inspectedPole.tag}, SALI DigiCom</span>
                 </div>
+                <h3 className="text-[26px] sm:text-[32px] font-normal leading-tight">
+                  {inspectedPole.title}
+                </h3>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setInspectedPole(null)}
+                aria-label="Fermer la fiche"
+                className="dc-pill-btn shrink-0"
+              >
+                <span className="dc-pill-btn-fill" />
+                <span className="dc-pill-btn-content">Fermer</span>
+              </button>
+            </div>
+
+            <p className="mt-5 text-[16px] leading-relaxed text-[#c8c8c8]">
+              {inspectedPole.summary}
+            </p>
+
+            <ul className="mt-6 space-y-3 text-[15.5px] text-white">
+              {inspectedPole.deliverables.map((d) => (
+                <li key={d} className="flex items-start gap-3">
+                  <span
+                    className="w-2 h-2 mt-2 border border-white rotate-45 shrink-0"
+                    aria-hidden="true"
+                  />
+                  <span>{d}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-9 flex flex-wrap items-center justify-between gap-4">
+              <button
+                type="button"
+                onClick={() => handlePoleAction(inspectedPole)}
+                className="dc-pill-btn"
+              >
+                <span className="dc-pill-btn-fill" />
+                <span className="dc-pill-btn-content">{inspectedPole.ctaLabel}</span>
+              </button>
             </div>
           </div>
-        </section>
+        </div>
+      )}
 
-        {/* PARALLAX SCREEN 3: MARKETING DEPARTMENT */}
-        <section id="digicom-services-2a" className="relative h-[100dvh] bg-[#ebf1f8] overflow-hidden text-[#1c2c46]">
-          <div className="absolute inset-0 z-0 h-full w-full">
-            <img 
-              src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1200" 
-              alt="Digital Marketing Campaigns" 
-              className="w-full h-full object-cover select-none opacity-55 brightness-110 contrast-100" 
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute inset-0 bg-[#ebf1f8]/60 backdrop-blur-[6px]" />
-          </div>
+      {/* =====================================================================
+          DETAILED PROJECT CASE STUDY VIEW / MODAL (/projet/<slug>)
+         ===================================================================== */}
+      {selectedProject && (
+        <ProjectCaseStudy
+          project={selectedProject}
+          onClose={() => setSelectedProject(null)}
+          onNavigateNext={handleNavigateNextProject}
+          onOpenQuestionnaire={(service) => {
+            setSelectedProject(null);
+            onOpenQuestionnaire(service || 'website');
+          }}
+        />
+      )}
 
-          <div className={`relative z-10 w-full h-full overflow-y-auto pt-24 pb-20 lg:py-12 px-[5vw] ${sectionPadds}`}>
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center justify-center w-full max-w-7xl mx-auto min-h-full lg:h-full px-4 pt-12 lg:pt-0">
-              <div className="lg:col-span-12 flex flex-col justify-center lg:h-full p-4 lg:p-12">
-                <span className="ae ae-left text-[10px] font-bold tracking-[3.5px] uppercase text-[#1d9878] bg-[#1d9878]/10 border border-[#1d9878]/20 px-4 py-1.5 rounded-full mb-5 inline-block self-start" data-d="1">
-                  SALI DIGICOM
-                </span>
-                <h1 className="ae ae-left text-3xl lg:text-4.5xl font-black tracking-tight leading-none text-[#1c2c46] mb-5" data-d="1.5">
-                  {t.digicom.marketingTitle}
-                </h1>
-                <p className="ae ae-left text-[12.5px] text-[#2d3e56] leading-relaxed max-w-lg mb-6" data-d="2.5">
-                  {t.digicom.marketingDesc}
-                </p>
-                <div className="ae ae-left mb-4" data-d="2.8">
-                  <button 
-                    onClick={() => onOpenQuestionnaire?.('community')}
-                    className="inline-flex items-center bg-[#1c2c46] hover:bg-[#1d9878] text-white px-6 py-3 text-[9.5px] font-bold tracking-[2px] uppercase transition-all self-start cursor-pointer relative z-10" 
-                    style={{ clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))' }} 
-                  >
-                    Obtenir un devis community management personnalisé
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-5 mt-2">
-                  {marketingServices.map((item, index) => (
-                    <div 
-                      key={index}
-                      className="ae ae-pop bg-white border border-[#d3dfed] p-5 rounded-2xl relative hover:border-[#1d9878] hover:bg-white hover:shadow-xl transition-all duration-300 group shadow-md"
-                      data-d={index + 3}
-                    >
-                      <div className="flex items-center gap-3.5 mb-2.5">
-                        <div className="w-10 h-10 bg-[#1d9878]/10 border border-[#1d9878]/15 rounded-lg flex items-center justify-center text-[#1d9878] group-hover:scale-110 transition-transform">
-                          {item.icon}
-                        </div>
-                        <h3 className="text-[13px] font-bold text-[#1c2c46] group-hover:text-[#1d9878] transition-colors leading-tight">{item.title}</h3>
-                      </div>
-                      <p className="text-[11px] text-[#2d3e56]/90 leading-tight">
-                        {item.desc}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* PARALLAX SCREEN 4: AI & AUTOMATION */}
-        <section id="digicom-services-2b" className="relative h-[100dvh] bg-[#ebf1f8] overflow-hidden text-[#1c2c46]">
-          <div className="absolute inset-0 z-0 h-full w-full">
-            <img 
-              src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1200" 
-              alt="AI and Automation" 
-              className="w-full h-full object-cover select-none opacity-55 brightness-110 contrast-100" 
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute inset-0 bg-[#ebf1f8]/60 backdrop-blur-[6px]" />
-          </div>
-
-          <div className={`relative z-10 w-full h-full overflow-y-auto pt-24 pb-20 lg:py-12 px-[5vw] ${sectionPadds}`}>
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center justify-center w-full max-w-7xl mx-auto min-h-full lg:h-full px-4 pt-12 lg:pt-0">
-              <div className="lg:col-span-12 flex flex-col justify-center lg:h-full p-4 lg:p-12">
-                <span className="ae ae-left text-[10px] font-bold tracking-[3.5px] uppercase text-[#1d9878] bg-[#1d9878]/10 border border-[#1d9878]/20 px-4 py-1.5 rounded-full mb-5 inline-block self-start" data-d="1">
-                  SALI DIGICOM
-                </span>
-                <h1 className="ae ae-left text-3xl lg:text-4.5xl font-black tracking-tight leading-none text-[#1c2c46] mb-5" data-d="1.5">
-                  {t.digicom.aiTitle}
-                </h1>
-                <p className="ae ae-left text-[12.5px] text-[#2d3e56] leading-relaxed max-w-lg mb-6" data-d="2.5">
-                  {t.digicom.aiDesc}
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-5 mt-2">
-                  {aiServices.map((item, index) => (
-                    <div 
-                      key={index}
-                      className="ae ae-pop bg-white border border-[#d3dfed] p-5 rounded-2xl relative hover:border-[#1d9878] hover:bg-white hover:shadow-xl transition-all duration-300 group shadow-md"
-                      data-d={index + 3}
-                    >
-                      <div className="flex items-center gap-3.5 mb-2.5">
-                        <div className="w-10 h-10 bg-[#1d9878]/10 border border-[#1d9878]/15 rounded-lg flex items-center justify-center text-[#1d9878] group-hover:scale-110 transition-transform">
-                          {item.icon}
-                        </div>
-                        <h3 className="text-[13px] font-bold text-[#1c2c46] group-hover:text-[#1d9878] transition-colors leading-tight">{item.title}</h3>
-                      </div>
-                      <p className="text-[11px] text-[#2d3e56]/90 leading-tight">
-                        {item.desc}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* PARALLAX SCREEN 5: OUR APPROACH */}
-        <section id="digicom-products-1" className="relative h-[100dvh] bg-[#ebf1f8] overflow-hidden text-[#1c2c46]">
-          <div className="absolute inset-0 z-0 h-full w-full">
-            <img 
-              src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=1200" 
-              alt="Creative Strategy Approach" 
-              className="w-full h-full object-cover select-none opacity-55 brightness-110 contrast-100" 
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute inset-0 bg-[#ebf1f8]/60 backdrop-blur-[6px]" />
-          </div>
-
-          <div className={`relative z-10 w-full h-full overflow-y-auto pt-24 pb-20 lg:py-12 px-[5vw] ${sectionPadds}`}>
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center justify-center w-full max-w-7xl mx-auto min-h-full lg:h-full px-4 pt-12 lg:pt-0">
-              <div className="lg:col-span-6 flex flex-col justify-center h-full relative z-10">
-                <span className="ae ae-left text-[10px] font-bold tracking-[3.5px] uppercase text-[#1d9878] bg-[#1d9878]/10 border border-[#1d9878]/20 px-4 py-1.5 rounded-full mb-5 inline-block self-start" data-d="1">
-                  SALI DIGICOM
-                </span>
-                <h2 className="ae ae-left text-3xl lg:text-4.5xl font-black tracking-tight leading-none text-[#1c2c46] mb-5" data-d="1.5">
-                  {t.digicom.approachTitle}
-                </h2>
-                <p className="ae ae-left text-[12.5px] text-[#2d3e56] font-medium leading-relaxed mb-4" data-d="2">
-                  {t.digicom.approachDesc}
-                </p>
-                
-                {/* Notre Vision Section Integrated */}
-                <div className="ae ae-left border-t border-[#1c2c46]/10 pt-4 mt-2 mb-6" data-d="2.5">
-                  <h3 className="text-xs font-bold tracking-[2px] uppercase text-[#1d9878] mb-1.5">{t.digicom.reachTitle}</h3>
-                  <p className="text-[12px] text-[#2d3e56] font-medium leading-relaxed">{t.digicom.reachDesc}</p>
-                </div>
-                
-                <button 
-                  onClick={() => onGoToSection?.(7)}
-                  className="ae ae-up inline-flex items-center bg-[#1d9878] text-white px-8 py-3.5 text-[10px] font-bold tracking-[2px] uppercase transition-all self-start cursor-pointer hover:bg-[#157159] relative z-10" 
-                  style={{ clipPath: 'polygon(0 0, calc(100% - 11px) 0, 100% 11px, 100% 100%, 11px 100%, 0 calc(100% - 11px))' }} 
-                  data-d="3.5"
-                >
-                  {activeLang === 'ar' ? 'أطلق مشروعك' : activeLang === 'en' ? 'Launch Project' : 'Lancer un projet'}
-                </button>
-              </div>
-
-              <div className="lg:col-span-6 flex flex-col justify-center relative w-full ae ae-pop" data-d="4">
-                <div className="grid grid-cols-2 gap-3 md:gap-4 w-full">
-                  {approachSteps.map((step, pIdx) => (
-                    <div 
-                      key={pIdx} 
-                      className="relative aspect-[4/3] rounded-2xl overflow-hidden group shadow-md border border-[#d3dfed] transition-all duration-300 hover:scale-[1.03] hover:shadow-lg"
-                    >
-                      <img 
-                        src={step.image} 
-                        alt={step.name} 
-                        className="w-full h-full object-cover select-none transition-transform duration-500 group-hover:scale-105" 
-                        referrerPolicy="no-referrer"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#1c2c46]/90 via-[#1c2c46]/35 to-transparent flex flex-col justify-end p-3 lg:p-4" />
-                      <span className="absolute bottom-3 left-3 right-3 text-white text-[10.5px] lg:text-[12px] font-extrabold tracking-wide leading-tight drop-shadow-sm">
-                        {step.name}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* PARALLAX SCREEN 6: OUR VALUES */}
-        <section id="digicom-products-2" className="relative h-[100dvh] bg-[#ebf1f8] overflow-hidden text-[#1c2c46]">
-          <div className="absolute inset-0 z-0 h-full w-full">
-            <img 
-              src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=1200" 
-              alt="Our Corporate Values" 
-              className="w-full h-full object-cover select-none opacity-55 brightness-110 contrast-100" 
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute inset-0 bg-[#ebf1f8]/60 backdrop-blur-[6px]" />
-          </div>
-
-          <div className={`relative z-10 w-full h-full overflow-y-auto pt-24 pb-20 lg:py-12 px-[5vw] ${sectionPadds}`}>
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center justify-center w-full max-w-7xl mx-auto min-h-full lg:h-full px-4 pt-12 lg:pt-0">
-              <div className="lg:col-span-6 flex flex-col justify-center h-full relative z-10">
-                <span className="ae ae-left text-[10px] font-bold tracking-[3.5px] uppercase text-[#1d9878] bg-[#1d9878]/10 border border-[#1d9878]/20 px-4 py-1.5 rounded-full mb-5 inline-block self-start" data-d="1">
-                  SALI DIGICOM
-                </span>
-                <h2 className="ae ae-left text-3xl lg:text-4.5xl font-black tracking-tight leading-none text-[#1c2c46] mb-5" data-d="1.5">
-                  {t.digicom.valuesTitle}
-                </h2>
-                <p className="ae ae-left text-[12.5px] text-[#2d3e56] font-medium leading-relaxed mb-6" data-d="2">
-                  {t.digicom.valuesDesc}
-                </p>
-                
-                <button 
-                  onClick={() => onGoToSection?.(7)}
-                  className="ae ae-up inline-flex items-center bg-[#1d9878] text-white px-8 py-3.5 text-[10px] font-bold tracking-[2px] uppercase transition-all self-start cursor-pointer hover:bg-[#157159] relative z-10" 
-                  style={{ clipPath: 'polygon(0 0, calc(100% - 11px) 0, 100% 11px, 100% 100%, 11px 100%, 0 calc(100% - 11px))' }} 
-                  data-d="3.5"
-                >
-                  {activeLang === 'ar' ? 'أطلق مشروعك' : activeLang === 'en' ? 'Launch Project' : 'Lancer un projet'}
-                </button>
-              </div>
-
-              <div className="lg:col-span-6 flex flex-col justify-center relative w-full ae ae-pop" data-d="4">
-                <div className="grid grid-cols-2 gap-3 md:gap-4 w-full">
-                  {[
-                    { key: 'strategy', icon: <Layers className="w-5 h-5 text-[#1d9878]" />, image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=800' },
-                    { key: 'creativity', icon: <Award className="w-5 h-5 text-[#1d9878]" />, image: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&q=80&w=800' },
-                    { key: 'performance', icon: <TrendingUp className="w-5 h-5 text-[#1d9878]" />, image: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&q=80&w=800' },
-                    { key: 'support', icon: <Users className="w-5 h-5 text-[#1d9878]" />, image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800' }
-                  ].map((item, idx) => {
-                    const val = t.digicom.valuesList[item.key as 'strategy' | 'creativity' | 'performance' | 'support'];
-                    return (
-                      <div 
-                        key={idx} 
-                        className="relative h-[145px] sm:h-[155px] md:h-[165px] lg:h-[190px] xl:h-[210px] rounded-2xl overflow-hidden group shadow-md border border-white/10 transition-all duration-300 hover:scale-[1.03] hover:shadow-lg bg-[#1c2c46] p-4 flex flex-col justify-between"
-                      >
-                        <img 
-                          src={item.image} 
-                          alt={val.title} 
-                          className="absolute inset-0 w-full h-full object-cover select-none transition-transform duration-500 group-hover:scale-105" 
-                          referrerPolicy="no-referrer"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#1c2c46] via-[#1c2c46]/75 to-[#1c2c46]/15 transition-all duration-300 group-hover:from-[#1c2c46]/95 group-hover:via-[#1c2c46]/85" />
-                        
-                        <div className="relative z-10 flex items-center justify-end w-full">
-                          <span className="text-[11px] lg:text-[13px] font-black text-white/30">0{idx + 1}</span>
-                        </div>
-                        
-                        <div className="relative z-10 mt-auto">
-                          <h3 className="text-[11.5px] lg:text-[13.5px] font-black text-white mb-1 leading-tight">{val.title}</h3>
-                          <p className="text-[9.5px] lg:text-[10.5px] leading-tight text-white/70 h-[34px] sm:h-[38px] lg:h-[42px] overflow-hidden">
-                            {val.desc}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-
-
-        {/* PARALLAX SCREEN 8: CONTACT */}
-        <section id="digicom-contact" className="relative h-[100dvh] bg-[#ebf1f8] overflow-hidden text-[#1c2c46]">
-          <div className="absolute inset-0 z-0 h-full w-full">
-             <img 
-               src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1200" 
-               className="w-full h-full object-cover opacity-55 brightness-110 contrast-100" 
-               alt="Contact Background" 
-               referrerPolicy="no-referrer"
-             />
-             <div className="absolute inset-0 bg-[#ebf1f8]/60 backdrop-blur-[6px]" />
-          </div>
-          
-          <div className={`relative z-10 w-full h-full overflow-y-auto pt-24 pb-20 lg:py-12 px-[5vw] ${sectionPadds}`}>
-            <div className="relative z-10 flex flex-col justify-center items-center w-full max-w-7xl mx-auto h-auto lg:h-full px-4 pt-12 lg:pt-0">
-              <div className="relative z-10 flex flex-col lg:grid lg:grid-cols-2 h-auto lg:h-full w-full border border-[#d3dfed] rounded-3xl overflow-hidden shadow-2xl bg-white">
-                
-                {/* Left Column */}
-                <div className="flex flex-col justify-center p-8 lg:p-12 bg-[#1c2c46] border-b lg:border-b-0 lg:border-r border-[#d3dfed] w-full">
-                  <h2 className="ae ae-left text-[clamp(28px,2.5vw,42px)] font-black tracking-[-1.5px] leading-[1.1] mb-5 text-white" data-d="1">
-                    {activeLang === 'ar' ? 'أطلق مشروعك' : activeLang === 'en' ? 'Launch Your Project' : 'Lancez votre projet'}
-                  </h2>
-                  <div className="ae ae-pop flex items-center gap-4 mb-5" data-d="1.5">
-                     <div className="w-10 h-[2px] bg-[#1d9878]" />
-                     <span className="text-[10px] font-bold tracking-[3.5px] uppercase text-[#1d9878]">SALI DigiCom</span>
-                  </div>
-                  <p className="ae ae-left text-[11px] lg:text-[13px] text-white/70 leading-relaxed font-semibold mb-6 max-w-sm" data-d="1.8">
-                    {t.contact.formTitleDigicom}
-                  </p>
-
-                  <div className="space-y-5 lg:space-y-8 mt-2">
-                    <div className="ae ae-up flex items-center gap-4" data-d="2">
-                      <div className="w-9 h-9 lg:w-12 lg:h-12 bg-[#1d9878]/15 border border-[#1d9878]/25 rounded-xl flex items-center justify-center text-[#1d9878]">
-                        <Phone size={16} />
-                      </div>
-                      <div>
-                        <span className="block text-[9px] font-bold tracking-[2px] uppercase text-white/30 mb-0.5">{t.contact.phoneLabel}</span>
-                        <a href="tel:+212713370946" className="text-xs lg:text-base font-semibold text-white hover:text-[#1d9878] transition-colors">+212 713-370946</a>
-                      </div>
-                    </div>
-                    <div className="ae ae-up flex items-center gap-4" data-d="2.5">
-                      <div className="w-9 h-9 lg:w-12 lg:h-12 bg-[#1d9878]/15 border border-[#1d9878]/25 rounded-xl flex items-center justify-center text-[#1d9878]">
-                        <Mail size={16} />
-                      </div>
-                      <div>
-                        <span className="block text-[9px] font-bold tracking-[2px] uppercase text-white/30 mb-0.5">{t.contact.emailLabel}</span>
-                        <a href="mailto:contact@sali-digicom.com" className="text-xs lg:text-base font-semibold text-white hover:text-[#1d9878] transition-colors">contact@sali-digicom.com</a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Column (Form) */}
-                <div className="flex flex-col justify-center p-8 lg:p-12 bg-white text-[#1c2c46] w-full overflow-y-visible">
-                  <AnimatePresence mode="wait">
-                    {!isSubmitted ? (
-                      <form onSubmit={handleSubmit} className="space-y-4 w-full">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="ae ae-up flex flex-col gap-1.5" data-d="3">
-                            <label className="text-[9.5px] font-bold tracking-[2px] uppercase text-[#1c2c46]/80">{t.contact.fullName}</label>
-                            <input 
-                              required
-                              value={formData.name}
-                              onChange={e => setFormData({...formData, name: e.target.value})}
-                              className="w-full bg-[#ebf1f8] border border-[#d3dfed] px-4 py-3 text-[12px] lg:text-[12.5px] outline-none focus:bg-white focus:border-[#1d9878] transition-all rounded-lg text-[#1c2c46]" 
-                              placeholder={t.contact.placeholderName}
-                            />
-                          </div>
-                          <div className="ae ae-up flex flex-col gap-1.5" data-d="3.5">
-                            <label className="text-[9.5px] font-bold tracking-[2px] uppercase text-[#1c2c46]/80">{t.contact.phoneLabel}</label>
-                            <input 
-                              required
-                              value={formData.phone}
-                              onChange={e => setFormData({...formData, phone: e.target.value})}
-                              className="w-full bg-[#ebf1f8] border border-[#d3dfed] px-4 py-3 text-[12px] lg:text-[12.5px] outline-none focus:bg-white focus:border-[#1d9878] transition-all rounded-lg text-[#1c2c46]" 
-                              placeholder={t.contact.placeholderPhone} 
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="ae ae-up flex flex-col gap-1.5" data-d="4">
-                            <label className="text-[9.5px] font-bold tracking-[2px] uppercase text-[#1c2c46]/80">{t.contact.emailLabel}</label>
-                            <input 
-                              required
-                              type="email"
-                              value={formData.email}
-                              onChange={e => setFormData({...formData, email: e.target.value})}
-                              className="w-full bg-[#ebf1f8] border border-[#d3dfed] px-4 py-3 text-[12px] lg:text-[12.5px] outline-none focus:bg-white focus:border-[#1d9878] transition-all rounded-lg text-[#1c2c46]" 
-                              placeholder={t.contact.placeholderEmail} 
-                            />
-                          </div>
-                          <div className="ae ae-up flex flex-col gap-1.5" data-d="4.5">
-                            <label className="text-[9.5px] font-bold tracking-[2px] uppercase text-[#1c2c46]/80">{t.contact.companyLabel}</label>
-                            <input 
-                              required
-                              value={formData.company}
-                              onChange={e => setFormData({...formData, company: e.target.value})}
-                              className="w-full bg-[#ebf1f8] border border-[#d3dfed] px-4 py-3 text-[12px] lg:text-[12.5px] outline-none focus:bg-white focus:border-[#1d9878] transition-all rounded-lg text-[#1c2c46]" 
-                              placeholder={t.contact.placeholderCompany}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="ae ae-up flex flex-col gap-1.5" data-d="5">
-                          <label className="text-[9.5px] font-bold tracking-[2px] uppercase text-[#1c2c46]/80">{activeLang === 'ar' ? 'نوع المشروع' : activeLang === 'en' ? 'Project Type' : 'Type de Projet'}</label>
-                          <select 
-                            value={formData.projectType}
-                            onChange={e => setFormData({...formData, projectType: e.target.value})}
-                            className="w-full bg-[#ebf1f8] border border-[#d3dfed] px-4 py-3 text-[12px] lg:text-[12.5px] outline-none focus:bg-white focus:border-[#1d9878] transition-all rounded-lg text-[#1c2c46]"
-                          >
-                            <option value="web">{t.digicom.webTitle}</option>
-                            <option value="branding">{t.digicom.brandingTitle}</option>
-                            <option value="marketing">{t.digicom.marketingTitle}</option>
-                            <option value="ai">{t.digicom.aiTitle}</option>
-                            <option value="other">{activeLang === 'ar' ? 'آخر' : activeLang === 'en' ? 'Other' : 'Autre'}</option>
-                          </select>
-                        </div>
-
-                        <div className="ae ae-up flex flex-col gap-1.5" data-d="5.5">
-                           <label className="text-[9.5px] font-bold tracking-[2px] uppercase text-[#1c2c46]/80">{t.contact.messageLabel}</label>
-                           <textarea 
-                             required={formData.projectType !== 'web' && formData.projectType !== 'marketing'}
-                             value={formData.message}
-                             onChange={e => setFormData({...formData, message: e.target.value})}
-                             className="w-full bg-[#ebf1f8] border border-[#d3dfed] px-4 py-3.5 text-[12px] lg:text-[12.5px] outline-none focus:bg-white focus:border-[#1d9878] transition-all resize-none rounded-lg text-[#1c2c46]" 
-                             placeholder={t.contact.placeholderMessageDigicom}
-                             rows={3} 
-                           />
-                         </div>
-
-                        {submitError && (
-                          <div className="ae ae-up text-red-500 text-[11px] font-semibold mt-2" data-d="5.8">
-                            {submitError}
-                          </div>
-                        )}
-
-                        <button 
-                          type="submit"
-                          disabled={isSending}
-                          className="ae ae-up bg-[#1c2c46] hover:bg-[#1d9878] hover:border-[#1d9878] disabled:opacity-50 text-white px-10 py-4 text-[10px] font-bold tracking-[2px] uppercase border-2 border-[#1c2c46] transition-all mt-4 self-start cursor-pointer inline-flex items-center gap-2"
-                          style={{ clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))' }}
-                          data-d="6"
-                        >
-                          {isSending 
-                            ? 'Envoi en cours...' 
-                            : (formData.projectType === 'web' || formData.projectType === 'marketing' 
-                                ? 'Remplir le formulaire' 
-                                : t.contact.btnSendDigicom)} 
-                          {formData.projectType === 'web' || formData.projectType === 'marketing' 
-                            ? <ArrowRight size={14} strokeWidth={3} /> 
-                            : <Send size={14} strokeWidth={3} />}
-                        </button>
-                      </form>
-                    ) : (
-                      <motion.div 
-                        key="success"
-                        className="flex flex-col items-center justify-center text-center py-4 h-full"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                      >
-                        <div className="w-12 h-12 bg-[#1d9878]/10 border border-[#1d9878]/25 rounded-full flex items-center justify-center text-[#1d9878] mb-4 animate-pulse">
-                          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        <h4 className="text-sm font-bold text-[#1c2c46] mb-1">{t.contact.successTitle}</h4>
-                        <p className="text-[10px] text-[#5a6a7a] max-w-sm leading-relaxed mb-4">
-                          {t.contact.successDescDigicom.split('contact@sali-digicom.com').map((part, index) => (
-                            <React.Fragment key={index}>
-                              {part}
-                              {index === 0 && <strong className="text-[#1c2c46]">contact@sali-digicom.com</strong>}
-                            </React.Fragment>
-                          ))}
-                        </p>
-                        <button 
-                          onClick={handleResetForm}
-                          className="text-[9px] font-bold uppercase tracking-[2px] text-[#1d9878] border border-[#1d9878]/30 px-5 py-2 rounded-full hover:bg-[#1d9878]/5 transition-all cursor-pointer"
-                        >
-                          {t.contact.btnWriteAnother}
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
-            </div>
-            </div>
-        </section>
-          </>
-        )}
-      </div>
+      {/* =====================================================================
+          FULL 3D SPATIAL / MULTI-CATEGORY PORTFOLIO GALLERY (/projets)
+         ===================================================================== */}
+      <ProjectsGalleryModal
+        isOpen={isGalleryOpen}
+        onClose={() => setIsGalleryOpen(false)}
+        onSelectProject={(proj) => {
+          setIsGalleryOpen(false);
+          handleOpenProject(proj);
+        }}
+      />
     </div>
   );
 }

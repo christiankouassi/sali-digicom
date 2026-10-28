@@ -66,7 +66,7 @@ if ($formType === 'satisfaction') {
     $coherenceRating = isset($data['coherenceRating']) ? (int)$data['coherenceRating'] : 8;
     $feedback = !empty($data['feedback']) ? htmlspecialchars($data['feedback']) : 'Aucun commentaire fourni.';
     $questionnaireType = (isset($data['questionnaireType']) && $data['questionnaireType'] === 'website') ? 'Création de Site Web' : 'Community Management';
-} elseif ($formType === 'website' || $formType === 'community') {
+} elseif ($formType === 'website' || $formType === 'community' || $formType === 'branding') {
     if (!$clientInfo || empty($clientInfo['email']) || empty($clientInfo['name'])) {
         http_response_code(400);
         echo json_encode(["error" => "Le nom et l'adresse e-mail sont obligatoires."]);
@@ -150,10 +150,12 @@ if ($formType === 'satisfaction') {
         </div>
       </div>
     ';
-} elseif ($formType === 'website' || $formType === 'community') {
+} elseif ($formType === 'website' || $formType === 'community' || $formType === 'branding') {
     $emailTitle = ($formType === 'website') 
         ? "Nouveau Questionnaire - Création de Site Web (SALI DigiCom)" 
-        : "Nouveau Questionnaire - Community Management (SALI DigiCom)";
+        : (($formType === 'branding')
+            ? "Nouveau Questionnaire - Identité Visuelle & Charte Graphique (SALI DigiCom)"
+            : "Nouveau Questionnaire - Community Management (SALI DigiCom)");
 
     // Format questionnaire responses rows
     $responsesRows = "";

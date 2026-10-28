@@ -29,7 +29,7 @@ export function Preloader({ loading }: PreloaderProps) {
               <Logo 
                 variant="capital" 
                 type="icon" 
-                className="w-full h-full object-contain filter drop-shadow-[0_4px_12px_rgba(29,152,120,0.12)]" 
+                className="w-full h-full object-contain" 
               />
             </motion.div>
           </div>

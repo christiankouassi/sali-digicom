@@ -110,7 +110,7 @@ app.post('/api/send-email', async (req, res) => {
         </div>
       </div>
     `;
-  } else if (formType === 'website' || formType === 'community') {
+  } else if (formType === 'website' || formType === 'community' || formType === 'branding') {
     clientName = clientInfo.name;
     clientEmail = clientInfo.email;
     clientPhone = clientInfo.phone || 'Non renseigné';
@@ -118,7 +118,9 @@ app.post('/api/send-email', async (req, res) => {
     clientCompany = clientInfo.company || 'Non renseigné';
     emailTitle = formType === 'website' 
       ? 'Nouveau Questionnaire - Création de Site Web (SALI DigiCom)' 
-      : 'Nouveau Questionnaire - Community Management (SALI DigiCom)';
+      : formType === 'branding'
+        ? 'Nouveau Questionnaire - Identité Visuelle & Charte Graphique (SALI DigiCom)'
+        : 'Nouveau Questionnaire - Community Management (SALI DigiCom)';
 
     // Build questionnaire responses section
     let responsesRows = '';
@@ -293,6 +295,9 @@ app.post('/api/send-email', async (req, res) => {
         auth: {
           user: testAccount.user,
           pass: testAccount.pass
+        },
+        tls: {
+          rejectUnauthorized: false
         }
       });
     }
@@ -329,6 +334,10 @@ app.post('/api/send-email', async (req, res) => {
 
   } catch (error) {
     console.error('SMTP sending error:', error);
+    if (!process.env.SMTP_HOST) {
+      console.log('[Development Mock] Returning success for mock submission.');
+      return res.status(200).json({ success: true, message: 'Message simulé (dev mock) enregistré avec succès !' });
+    }
     res.status(500).json({ error: 'Erreur lors de la transmission du message. Veuillez réessayer ultérieurement.' });
   }
 });

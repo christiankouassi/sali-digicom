@@ -1,18 +1,31 @@
 import React from 'react';
 
-interface LogoProps {
+export interface LogoProps {
   variant?: 'capital' | 'commodities' | 'dassouli' | 'digicom';
-  type?: 'icon' | 'full';
+  type?: 'icon' | 'full' | 'horizontal' | 'stacked';
   className?: string;
-  light?: boolean; // Keep for compatibility with signature but ignore to prevent altering native colors
-  badge?: boolean; // Keep for compatibility with signature but ignore to enforce pure transparent background
-  srcOverride?: string; // Explicit URL override
+  light?: boolean;
+  badge?: boolean;
+  srcOverride?: string;
+  altOverride?: string;
 }
 
-export default function Logo({ variant = 'capital', type = 'icon', className = '', light = false, badge = false, srcOverride }: LogoProps) {
-  // Source URLs mapped to the high-quality assets provided by the user
+/**
+ * Official SALI DigiCom & Group Logotype Component
+ * In accordance with Charte Graphique SALI DigiCom p. 7 ("Utiliser le logo mono sur fond marine"),
+ * DigiCom variants default to high-resolution crisp monochrome white on #1C2C46 dark navy background.
+ */
+export function Logo({
+  variant = 'digicom',
+  type = 'horizontal',
+  className = '',
+  light = true,
+  badge = false,
+  srcOverride,
+  altOverride,
+}: LogoProps) {
   let src = srcOverride || '';
-  let alt = '';
+  let alt = altOverride || '';
 
   if (!src) {
     switch (variant) {
@@ -24,29 +37,40 @@ export default function Logo({ variant = 'capital', type = 'icon', className = '
         src = 'https://i.postimg.cc/fbhrdVzD/5.png';
         alt = 'Sali Commodities Logo';
         break;
-      case 'digicom':
-        src = '/logo-digicom-full.png';
-        alt = 'Sali DigiCom Logo';
-        break;
       case 'capital':
-      default:
         src = 'https://i.postimg.cc/C573vfgr/LOGO-SALI.png';
         alt = 'Sali Capital Logo';
         break;
+      case 'digicom':
+      default:
+        if (type === 'icon') {
+          src = '/logo-digicom-white-icon.png';
+          alt = 'SALI DigiCom Emblème SD';
+        } else if (type === 'stacked') {
+          src = '/logo-digicom-white-stacked.png';
+          alt = 'SALI DigiCom Logo';
+        } else {
+          // 'horizontal' or 'full'
+          src = '/logo-digicom-white-horizontal.png';
+          alt = 'SALI DigiCom';
+        }
+        break;
     }
-  } else {
+  } else if (!alt) {
     alt = `${variant} Logo`;
   }
 
-  // Pure native colors are maintained transparently with no filters as instructed by the user.
   return (
     <div className={`relative overflow-hidden flex items-center justify-center ${className}`}>
-      <img 
+      <img
         src={src}
         alt={alt}
         className="w-full h-full object-contain select-none transition-all duration-300"
-        referrerPolicy="no-referrer"
+        loading="eager"
+        decoding="async"
       />
     </div>
   );
 }
+
+export default Logo;
