@@ -999,6 +999,336 @@ export default function QuestionnaireFlow({
 
   const progressPct = Math.round(((currentStepIdx + 1) / totalSteps) * 100);
 
+  // Dedicated unboxed minimal editorial layout for standalone routes (/creation-de-site-web, etc.)
+  if (isStandalonePage) {
+    return (
+      <div 
+        data-ui="questionnaire-modal"
+        data-modal-type="questionnaire-page"
+        className="w-full max-w-3xl mx-auto text-white font-['Montserrat',sans-serif]"
+      >
+        {/* Page Title & Intro */}
+        <div className="text-center mb-10">
+          <span className="text-xs font-bold tracking-[0.25em] text-[#1D9878] uppercase block mb-3">
+            Cadrage Stratégique &amp; Devis
+          </span>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">
+            {activeType === 'website' && 'Plateforme Web & E-Commerce'}
+            {activeType === 'community' && 'Community Management & Social Media'}
+            {activeType === 'branding' && 'Identité Visuelle & Branding'}
+          </h1>
+          <p className="mt-3 text-sm md:text-base text-[#B8C7DA] font-light max-w-xl mx-auto">
+            Répondez à quelques questions ciblées pour calibrer votre projet et recevoir un devis personnalisé sous 24h.
+          </p>
+        </div>
+
+        {/* Questionnaire Type Switcher Tabs */}
+        {!submittedSuccess && (
+          <div className="flex items-center justify-center gap-2 p-1.5 bg-[#131F33] rounded-full border border-white/10 max-w-md mx-auto mb-10">
+            <button
+              type="button"
+              onClick={() => handleTypeChange('website')}
+              data-ui="tab-website"
+              className={`flex-1 py-2.5 px-4 rounded-full text-xs font-bold tracking-wide transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                activeType === 'website'
+                  ? 'bg-[#1D9878] text-white shadow-lg shadow-[#1D9878]/30'
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span>Site Web</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleTypeChange('community')}
+              data-ui="tab-community"
+              className={`flex-1 py-2.5 px-4 rounded-full text-xs font-bold tracking-wide transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                activeType === 'community'
+                  ? 'bg-[#1D9878] text-white shadow-lg shadow-[#1D9878]/30'
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              <span>Social Media</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleTypeChange('branding')}
+              data-ui="tab-branding"
+              className={`flex-1 py-2.5 px-4 rounded-full text-xs font-bold tracking-wide transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                activeType === 'branding'
+                  ? 'bg-[#1D9878] text-white shadow-lg shadow-[#1D9878]/30'
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Branding</span>
+            </button>
+          </div>
+        )}
+
+        {/* Stepper Progress Bar */}
+        {!submittedSuccess && (
+          <div className="space-y-2 mb-12 max-w-3xl mx-auto">
+            <div className="flex items-center justify-between text-xs text-[#B8C7DA]">
+              <span className="font-semibold text-white">
+                Étape {currentStepIdx + 1 < 10 ? `0${currentStepIdx + 1}` : currentStepIdx + 1} / {totalSteps < 10 ? `0${totalSteps}` : totalSteps}
+              </span>
+              <span className="text-[#1D9878] font-bold">{progressPct}%</span>
+            </div>
+            <div className="h-1.5 w-full bg-[#131F33] rounded-full overflow-hidden border border-white/5">
+              <div 
+                className="h-full bg-gradient-to-r from-[#1D9878] to-[#2FD1A6] rounded-full transition-all duration-300"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Questions Body */}
+        <div ref={containerRef} data-ui="qf-scroll-body">
+          {submittedSuccess ? (
+            /* SUCCESS STATE */
+            <div data-ui="qf-success-state" className="py-14 px-4 text-center space-y-6 animate-fade-in max-w-xl mx-auto">
+              <div className="w-16 h-16 rounded-full bg-[#1D9878]/20 border-2 border-[#1D9878] flex items-center justify-center mx-auto text-[#1D9878] shadow-lg shadow-[#1D9878]/20">
+                <CheckCircle className="w-9 h-9" />
+              </div>
+              <div className="space-y-2">
+                <span className="text-xs tracking-[0.2em] font-bold text-[#1D9878] uppercase">
+                  Demande Transmise avec Succès
+                </span>
+                <h3 className="text-2xl sm:text-3xl font-bold text-white">
+                  Votre cahier des charges a bien été enregistré
+                </h3>
+                <p className="text-sm md:text-base text-white/70 leading-relaxed font-light">
+                  Notre équipe stratégique SALI DigiCom analyse vos réponses. Un consultant senior vous contactera sous 24h ouvrées par téléphone ou WhatsApp pour cadrer la proposition technique et financière.
+                </p>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-[#131F33] border border-[#243757] text-left text-xs sm:text-sm space-y-2 text-white/80">
+                <div className="flex items-center gap-2 font-semibold text-[#1D9878]">
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Nos engagements de confidentialité</span>
+                </div>
+                <p className="text-white/60 font-light">
+                  Toutes les informations transmises dans ce questionnaire demeurent strictement confidentielles et font l’objet d’un engagement de non-divulgation.
+                </p>
+              </div>
+
+              <div className="pt-6">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  data-ui="qf-finish-btn"
+                  className="px-8 py-4 bg-[#1D9878] hover:bg-[#167d63] text-white font-bold rounded-full shadow-xl shadow-[#1D9878]/30 transition-all text-xs uppercase tracking-wider cursor-pointer hover:scale-105"
+                >
+                  Retour au site SALI DigiCom
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* QUESTIONS STEP */
+            <div data-ui="qf-step-container" className="space-y-8 max-w-3xl mx-auto">
+              {/* Step Header */}
+              <div className="space-y-2 pb-4 border-b border-white/10">
+                <div className="text-xs font-bold tracking-[0.2em] text-[#1D9878] uppercase">
+                  Partie {currentStep.stepIndex} : {currentStep.title}
+                </div>
+                <p className="text-sm md:text-base text-[#B8C7DA] font-light">
+                  {currentStep.subtitle}
+                </p>
+              </div>
+
+              {/* Questions List (Strictly 3-4 questions, Minimalist Landing Page Form Style) */}
+              <div data-ui="questions-group" className="space-y-8">
+                {currentStep.questions.map((q, qIndex) => {
+                  return (
+                    <div 
+                      key={q.id}
+                      data-ui="question-item"
+                      data-question-id={q.id}
+                      className="space-y-2 group"
+                    >
+                      <div className="flex items-baseline justify-between gap-3">
+                        <label className="text-xs sm:text-sm font-semibold tracking-wide text-[#B8C7DA] group-focus-within:text-[#1D9878] transition-colors leading-snug flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-full bg-[#131F33] border border-[#1D9878]/40 text-[#1D9878] text-[10px] flex items-center justify-center font-bold shrink-0">
+                            {qIndex + 1}
+                          </span>
+                          <span>
+                            {q.label}
+                            {q.required && <span className="text-[#1D9878] ml-1">*</span>}
+                          </span>
+                        </label>
+                      </div>
+
+                      {/* Input Types */}
+                      {q.type === 'text' && (
+                        <div className="dc-field-wrap">
+                          <input
+                            type="text"
+                            name={q.id}
+                            placeholder={q.placeholder || 'Votre réponse...'}
+                            value={answers[q.id] || ''}
+                            onChange={(e) => handleTextChange(q.id, e.target.value)}
+                            className="dc-input text-white text-sm sm:text-base py-3.5"
+                          />
+                          <span className="dc-field-focus-line" aria-hidden="true" />
+                        </div>
+                      )}
+
+                      {q.type === 'textarea' && (
+                        <div className="dc-field-wrap">
+                          <textarea
+                            rows={3}
+                            name={q.id}
+                            placeholder={q.placeholder || 'Précisez votre besoin...'}
+                            value={answers[q.id] || ''}
+                            onChange={(e) => handleTextChange(q.id, e.target.value)}
+                            className="dc-textarea text-white text-sm sm:text-base py-3.5 resize-none"
+                          />
+                          <span className="dc-field-focus-line" aria-hidden="true" />
+                        </div>
+                      )}
+
+                      {q.type === 'select' && (
+                        <div className="dc-field-wrap relative">
+                          <select
+                            name={q.id}
+                            value={answers[q.id] || ''}
+                            onChange={(e) => handleTextChange(q.id, e.target.value)}
+                            className="dc-input appearance-none text-white text-sm sm:text-base py-3.5 pr-8 cursor-pointer"
+                          >
+                            <option value="" className="bg-[#1C2C46] text-white/50">Sélectionnez une option...</option>
+                            {q.options?.map((opt) => (
+                              <option key={opt} value={opt} className="bg-[#1C2C46] text-white">
+                                {opt}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown className="w-4 h-4 text-[#1D9878] absolute right-2 bottom-4 pointer-events-none" />
+                          <span className="dc-field-focus-line" aria-hidden="true" />
+                        </div>
+                      )}
+
+                      {q.type === 'radio' && (
+                        <div className="pt-2 flex flex-wrap gap-3">
+                          {q.options?.map((opt) => {
+                            const isSelected = answers[q.id] === opt;
+                            return (
+                              <button
+                                key={opt}
+                                type="button"
+                                onClick={() => handleRadioSelect(q.id, opt)}
+                                className={`inline-flex items-center gap-3 px-4 py-2.5 rounded-full border text-xs sm:text-sm transition-all duration-300 cursor-pointer ${
+                                  isSelected
+                                    ? 'border-[#1D9878] bg-[#1D9878]/15 text-white font-semibold shadow-[0_0_15px_rgba(29,152,120,0.25)]'
+                                    : 'border-white/20 bg-transparent text-[#B8C7DA] hover:border-white/50 hover:text-white'
+                                }`}
+                              >
+                                <span
+                                  className={`w-2.5 h-2.5 border transition-all duration-300 shrink-0 transform ${
+                                    isSelected
+                                      ? 'rotate-[135deg] bg-[#1D9878] border-[#1D9878] scale-110'
+                                      : 'rotate-45 bg-transparent border-white/40'
+                                  }`}
+                                />
+                                <span>{opt}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {q.type === 'multiselect' && (
+                        <div className="pt-2 flex flex-wrap gap-3">
+                          {q.options?.map((opt) => {
+                            const isSelected = Array.isArray(answers[q.id]) && answers[q.id].includes(opt);
+                            return (
+                              <button
+                                key={opt}
+                                type="button"
+                                onClick={() => handleMultiToggle(q.id, opt)}
+                                className={`inline-flex items-center gap-3 px-4 py-2.5 rounded-full border text-xs sm:text-sm transition-all duration-300 cursor-pointer ${
+                                  isSelected
+                                    ? 'border-[#1D9878] bg-[#1D9878]/15 text-white font-semibold shadow-[0_0_15px_rgba(29,152,120,0.25)]'
+                                    : 'border-white/20 bg-transparent text-[#B8C7DA] hover:border-white/50 hover:text-white'
+                                }`}
+                              >
+                                <span
+                                  className={`w-2.5 h-2.5 border transition-all duration-300 shrink-0 transform ${
+                                    isSelected
+                                      ? 'rotate-[135deg] bg-[#1D9878] border-[#1D9878] scale-110'
+                                      : 'rotate-45 bg-transparent border-white/40'
+                                  }`}
+                                />
+                                <span>{opt}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Error Alert */}
+              {submitError && (
+                <div data-ui="qf-error-alert" className="p-3.5 rounded-xl bg-red-950/60 border border-red-500/50 text-red-200 text-xs flex items-center gap-2.5">
+                  <span className="w-2 h-2 rounded-full bg-red-400 shrink-0" />
+                  <span>{submitError}</span>
+                </div>
+              )}
+
+              {/* Bottom Navigation Actions */}
+              <div className="mt-12 pt-8 border-t border-white/10 flex items-center justify-between gap-4">
+                <div>
+                  {currentStepIdx > 0 && (
+                    <button
+                      type="button"
+                      onClick={handlePrev}
+                      data-ui="qf-prev-btn"
+                      className="px-6 py-3 rounded-full border border-white/20 hover:border-white/40 text-xs font-semibold text-[#B8C7DA] hover:text-white transition-all flex items-center gap-2 cursor-pointer"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Précédent</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="hidden sm:block text-xs text-[#B8C7DA] font-light">
+                  Questionnaire officiel <strong className="text-white font-semibold">SALI DigiCom</strong>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={currentStepIdx < totalSteps - 1 ? handleNext : handleSubmit}
+                  disabled={isSubmitting}
+                  data-ui={currentStepIdx < totalSteps - 1 ? "qf-next-btn" : "qf-submit-btn"}
+                  className="px-8 py-3.5 rounded-full bg-[#1D9878] hover:bg-[#167d63] text-xs font-bold uppercase tracking-wider text-white shadow-xl shadow-[#1D9878]/30 transition-all flex items-center gap-2.5 cursor-pointer hover:scale-105 active:scale-95 disabled:opacity-50"
+                >
+                  {currentStepIdx < totalSteps - 1 ? (
+                    <>
+                      <span>Étape suivante</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  ) : isSubmitting ? (
+                    <span>Transmission en cours...</span>
+                  ) : (
+                    <>
+                      <span>Transmettre ma demande de devis</span>
+                      <Send className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   const modalContent = (
     <div 
       data-ui="questionnaire-modal"

@@ -218,7 +218,7 @@ export function ProjectCaseStudyPage({ slug, onNavigateWithCurtain }: ProjectCas
       {/* =====================================================================
           HEADER FIXE DIGITAL COVER STYLE
          ===================================================================== */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-[#1C2C46]/85 border-b border-[#243757]/70 transition-all duration-300">
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#131F33]/95 border-b border-white/10 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-6 py-4 md:px-12 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
@@ -264,7 +264,7 @@ export function ProjectCaseStudyPage({ slug, onNavigateWithCurtain }: ProjectCas
       {/* =====================================================================
           SECTION 1 : HERO MONUMENTAL AVEC KINETIC SPLIT-TITLE & PLANCHE RESTREINTE
          ===================================================================== */}
-      <section className="pt-32 sm:pt-40 pb-16 px-6 md:px-12 max-w-7xl mx-auto">
+      <section className="pt-44 md:pt-48 pb-16 px-6 md:px-12 max-w-7xl mx-auto">
         {/* Meta badges row */}
         <FadeIn delay={0.1} y={20} duration={1.0}>
           <div className="flex flex-wrap items-center gap-3 mb-6">
@@ -431,15 +431,15 @@ export function ProjectCaseStudyPage({ slug, onNavigateWithCurtain }: ProjectCas
           </FadeIn>
 
           {/* Asymmetric Duo: Left Mobile Mockup (smartphone frame) + Right Desktop Mockup (browser frame) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Mobile Column (4 cols) */}
             {project.mobileImage && (
               <FadeIn delay={0.2} x={-30} duration={1.3} className="lg:col-span-4 flex justify-center">
-                <div className="w-full max-w-[280px] rounded-[38px] p-3 bg-[#0A101A] border-2 border-white/20 shadow-2xl relative">
+                <div className="w-[280px] sm:w-[300px] h-[580px] sm:h-[620px] rounded-[44px] p-3.5 bg-[#0A101A] border-2 border-white/20 shadow-2xl flex flex-col justify-between shrink-0 relative">
                   {/* Speaker notch */}
-                  <div className="w-20 h-4 bg-[#1C2C46] rounded-full mx-auto mb-3" />
+                  <div className="w-20 h-4 bg-[#1C2C46] rounded-full mx-auto mb-2 shrink-0" />
                   <div
-                    className="aspect-[9/18.5] rounded-[28px] overflow-hidden bg-[#0E1624] border border-white/10 group cursor-pointer"
+                    className="flex-1 w-full rounded-[30px] overflow-hidden bg-[#0E1624] border border-white/10 group cursor-pointer relative"
                     onClick={() =>
                       setSelectedGalleryImg({
                         src: project.mobileImage!,
@@ -454,7 +454,7 @@ export function ProjectCaseStudyPage({ slug, onNavigateWithCurtain }: ProjectCas
                     />
                   </div>
                   {/* Home indicator bar */}
-                  <div className="w-24 h-1 bg-white/40 rounded-full mx-auto mt-3" />
+                  <div className="w-24 h-1 bg-white/40 rounded-full mx-auto mt-2.5 shrink-0" />
                 </div>
               </FadeIn>
             )}
@@ -467,16 +467,16 @@ export function ProjectCaseStudyPage({ slug, onNavigateWithCurtain }: ProjectCas
               className={project.mobileImage ? 'lg:col-span-8' : 'lg:col-span-12'}
             >
               <div
-                className="rounded-3xl overflow-hidden border border-[#243757] bg-[#131F33] shadow-2xl group cursor-pointer"
+                className="w-full h-[580px] sm:h-[620px] rounded-3xl overflow-hidden border border-[#243757] bg-[#131F33] shadow-2xl flex flex-col group cursor-pointer"
                 onClick={() =>
                   setSelectedGalleryImg({
-                    src: project.secondaryImage || project.primaryImage,
+                    src: project.primaryImage || project.secondaryImage,
                     caption: `${project.title} — Interface Desktop`,
                   })
                 }
               >
                 {/* Browser top bar */}
-                <div className="px-5 py-3.5 bg-[#1A2A42] border-b border-white/10 flex items-center justify-between">
+                <div className="px-5 py-3.5 bg-[#1A2A42] border-b border-white/10 flex items-center justify-between shrink-0">
                   <div className="flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full bg-[#FF5F56]" />
                     <span className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
@@ -487,11 +487,11 @@ export function ProjectCaseStudyPage({ slug, onNavigateWithCurtain }: ProjectCas
                   </div>
                   <Maximize2 className="w-4 h-4 text-[#A0B4CC] opacity-60 group-hover:opacity-100 transition-opacity" />
                 </div>
-                <div className="aspect-[16/10] overflow-hidden bg-[#0e1624]">
+                <div className="flex-1 w-full overflow-hidden bg-[#0e1624] relative">
                   <img
-                    src={project.secondaryImage || project.primaryImage}
+                    src={project.primaryImage || project.secondaryImage}
                     alt={`${project.title} - Desktop`}
-                    className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700 select-none"
+                    className="w-full h-full object-cover object-top group-hover:scale-103 transition-transform duration-700 select-none"
                   />
                 </div>
               </div>
@@ -499,22 +499,22 @@ export function ProjectCaseStudyPage({ slug, onNavigateWithCurtain }: ProjectCas
           </div>
 
           {/* Full-Bleed Panoramic View */}
-          {project.detailImage && (
+          {(project.secondaryImage || project.detailImage) && (
             <FadeIn delay={0.4} y={35} duration={1.3}>
               <div
                 className="rounded-3xl overflow-hidden border border-[#243757] bg-[#131F33] shadow-2xl group cursor-pointer"
                 onClick={() =>
                   setSelectedGalleryImg({
-                    src: project.detailImage,
+                    src: project.secondaryImage || project.detailImage!,
                     caption: `${project.title} — Détail d'interface & supports`,
                   })
                 }
               >
-                <div className="aspect-[21/9] max-h-[520px] overflow-hidden bg-[#0e1624]">
+                <div className="w-full h-[360px] sm:h-[460px] overflow-hidden bg-[#0e1624]">
                   <img
-                    src={project.detailImage}
+                    src={project.secondaryImage || project.detailImage}
                     alt={`${project.title} - Détail`}
-                    className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700 select-none"
+                    className="w-full h-full object-cover object-center group-hover:scale-103 transition-transform duration-700 select-none"
                   />
                 </div>
                 <div className="p-5 bg-[#131F33] border-t border-[#243757] flex items-center justify-between">
@@ -671,8 +671,11 @@ export function ProjectCaseStudyPage({ slug, onNavigateWithCurtain }: ProjectCas
       {/* =====================================================================
           SECTION 5 : PROJET SUIVANT SIGNATURE DIGITAL COVER (c-next)
          ===================================================================== */}
-      <section className="py-24 px-6 md:px-12 bg-gradient-to-b from-[#1C2C46] to-[#131F33] border-t border-white/10">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-28 px-6 md:px-12 bg-gradient-to-b from-[#1C2C46] via-[#131F33] to-[#0D1522] border-t border-white/10 relative overflow-hidden">
+        {/* Subtle radial ambient glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-[#1D9878]/10 blur-[140px] pointer-events-none rounded-full" />
+
+        <div className="max-w-7xl mx-auto relative z-10">
           <FadeIn delay={0.2} y={40} duration={1.3}>
             <div
               data-ui="next-project-card"
@@ -684,23 +687,23 @@ export function ProjectCaseStudyPage({ slug, onNavigateWithCurtain }: ProjectCas
                   handleNav(`/projet/${nextProject.slug}`);
                 }
               }}
-              className="p-8 sm:p-14 rounded-3xl bg-[#131F33] border border-[#243757] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 group hover:border-[#1D9878] transition-all duration-500 shadow-2xl cursor-pointer"
+              className="p-8 sm:p-16 md:p-20 rounded-3xl bg-[#131F33]/90 border border-[#243757] hover:border-[#1D9878] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-10 group transition-all duration-700 shadow-[0_30px_90px_-20px_rgba(0,0,0,0.8)] cursor-pointer"
             >
-              <div>
-                <span className="text-xs uppercase tracking-widest text-[#1D9878] font-bold block mb-3 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#1D9878]" />
+              <div className="max-w-3xl">
+                <span className="text-xs sm:text-sm uppercase tracking-[0.25em] text-[#1D9878] font-bold block mb-4 flex items-center gap-2.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#1D9878] animate-pulse" />
                   <span>Projet Suivant</span>
                 </span>
-                <h3 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-white group-hover:text-[#1D9878] transition-colors duration-300 leading-tight">
+                <h3 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white group-hover:text-[#1D9878] transition-colors duration-500 leading-[0.95] tracking-tight">
                   {nextProject.title}
                 </h3>
-                <p className="text-sm sm:text-base text-[#B8C7DA] mt-3 font-light">
-                  {nextProject.categoryLabel} · {nextProject.city}
+                <p className="text-base sm:text-lg md:text-xl text-[#B8C7DA] mt-5 font-light">
+                  {nextProject.categoryLabel} · {nextProject.city} · {nextProject.year}
                 </p>
               </div>
 
-              <div className="flex items-center gap-4 shrink-0">
-                <div className="hidden sm:block w-20 h-28 rounded-xl overflow-hidden border border-white/20 bg-[#0E1624] shadow-lg group-hover:scale-105 transition-transform">
+              <div className="flex items-center gap-6 shrink-0 self-start lg:self-center">
+                <div className="w-24 h-32 sm:w-32 sm:h-44 md:w-36 md:h-48 rounded-2xl overflow-hidden border border-white/20 bg-[#0E1624] shadow-2xl group-hover:scale-105 group-hover:border-[#1D9878] transition-all duration-500">
                   <img
                     src={nextProject.portraitBoard || nextProject.primaryImage}
                     alt={nextProject.title}
@@ -714,7 +717,7 @@ export function ProjectCaseStudyPage({ slug, onNavigateWithCurtain }: ProjectCas
                     e.stopPropagation();
                     handleNav(`/projet/${nextProject.slug}`);
                   }}
-                  className="inline-flex items-center gap-3 px-8 py-5 rounded-full bg-[#1D9878] group-hover:bg-[#167d63] text-white font-bold text-sm uppercase tracking-wider transition-all shadow-xl shadow-[#1D9878]/30 group-hover:scale-105 active:scale-95 cursor-pointer"
+                  className="inline-flex items-center gap-3 px-8 py-5 rounded-full bg-[#1D9878] group-hover:bg-[#167d63] text-white font-bold text-xs sm:text-sm uppercase tracking-wider transition-all shadow-xl shadow-[#1D9878]/30 group-hover:scale-105 active:scale-95 cursor-pointer"
                 >
                   <span>Découvrir le projet</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform" />

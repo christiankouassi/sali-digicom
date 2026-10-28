@@ -46,13 +46,17 @@ export const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ slug, onNa
   return (
     <div className="min-h-screen bg-[#1C2C46] text-white selection:bg-[#1D9878] selection:text-white">
       {/* Top Floating Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#1C2C46]/90 backdrop-blur-md border-b border-white/10 px-6 py-4 flex items-center justify-between">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#131F33]/95 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex items-center justify-between">
         <button
           type="button"
           onClick={() => handleNav('/')}
           className="flex items-center gap-3 group bg-transparent border-0 p-0 text-white cursor-pointer"
         >
-          <Logo size="small" variant="horizontal" />
+          <Logo
+            variant="digicom"
+            type="horizontal"
+            className="h-8 md:h-9 w-auto opacity-95 group-hover:opacity-100 transition-opacity"
+          />
         </button>
 
         <div className="flex items-center gap-4">
@@ -84,7 +88,7 @@ export const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ slug, onNa
       </header>
 
       {/* Hero Section */}
-      <section className="pt-36 pb-20 px-6 md:px-12 max-w-7xl mx-auto">
+      <section className="pt-44 md:pt-48 pb-20 px-6 md:px-12 max-w-7xl mx-auto">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#131F33] border border-[#243757] text-[#1D9878] text-xs font-bold uppercase tracking-widest mb-6">
           <span>Pôle d'Expertise {service.categoryNumber}</span>
         </div>
@@ -124,13 +128,13 @@ export const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ slug, onNa
         </div>
 
         {/* Hero Visual Scene */}
-        <div className="mt-14 rounded-3xl overflow-hidden border border-[#243757] bg-[#131F33] shadow-2xl relative max-h-[540px]">
+        <div className="mt-14 rounded-3xl overflow-hidden border border-[#243757] bg-[#131F33] shadow-2xl relative aspect-[16/9] md:aspect-[21/9] min-h-[380px] max-h-[640px]">
           <img
             src={service.heroImage}
             alt={service.title}
-            className="w-full h-full object-cover object-top select-none opacity-90"
+            className="w-full h-full object-cover object-center select-none opacity-95"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#1C2C46] via-transparent to-transparent opacity-80" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1C2C46] via-transparent to-transparent opacity-60" />
         </div>
       </section>
 
@@ -175,7 +179,7 @@ export const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ slug, onNa
                 className="p-8 rounded-2xl bg-[#131F33] border border-[#243757] hover:border-[#1D9878]/60 transition-all duration-300 flex flex-col justify-between group"
               >
                 <div>
-                  <div className="w-10 h-10 rounded-xl bg-[#1C2C46] border border-white/10 flex items-center justify-center text-[#1D9878] mb-6 font-mono text-sm font-bold group-hover:scale-110 transition-transform">
+                  <div className="w-10 h-10 rounded-xl bg-[#1C2C46] border border-white/10 flex items-center justify-center text-[#1D9878] mb-6 font-['Montserrat',sans-serif] text-xs font-bold group-hover:scale-110 transition-transform">
                     0{idx + 1}
                   </div>
                   <h3 className="text-xl font-bold text-white group-hover:text-[#1D9878] transition-colors">
@@ -200,7 +204,7 @@ export const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ slug, onNa
               className="p-8 rounded-2xl bg-[#131F33] border border-[#243757] flex flex-col justify-between"
             >
               <div>
-                <span className="text-4xl md:text-5xl font-extrabold text-[#1D9878] block mb-4 font-mono">
+                <span className="text-4xl md:text-5xl font-extrabold text-[#1D9878] block mb-4 font-['Montserrat',sans-serif] tracking-tight">
                   {feat.metric}
                 </span>
                 <h4 className="text-lg font-bold text-white mb-2">{feat.title}</h4>
@@ -267,7 +271,13 @@ export const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ slug, onNa
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className={
+            relatedProjects.length === 1
+              ? "flex justify-center"
+              : relatedProjects.length === 2
+              ? "grid grid-cols-1 sm:grid-cols-2 max-w-4xl mx-auto gap-8"
+              : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+          }>
             {relatedProjects.map((p) => (
               <button
                 key={p.id}

@@ -78,7 +78,7 @@ export const SERVICES_CATALOG: Record<string, ServiceDetail> = {
       'Formation et documentation technique d’utilisation'
     ],
     heroImage: '/portfolio/websites/cap-hero-desktop.jpg',
-    relatedProjectIds: ['cap-investment', 'gueliz-properties', 'imtiaz-taamine']
+    relatedProjectIds: ['cap-investment-solutions', 'gueliz-properties', 'imtiaz-taamine']
   },
 
   'branding': {
@@ -131,7 +131,7 @@ export const SERVICES_CATALOG: Record<string, ServiceDetail> = {
       'Modèles pour présentations PowerPoint et Keynote'
     ],
     heroImage: '/portfolio/branding/capassur-charte-cover.jpg',
-    relatedProjectIds: ['gueliz-properties', 'capassur']
+    relatedProjectIds: ['gueliz-properties', 'cap-assur']
   },
 
   'social-media': {
@@ -237,6 +237,6 @@ export const SERVICES_CATALOG: Record<string, ServiceDetail> = {
       'Session de prise en main et formation des collaborateurs'
     ],
     heroImage: '/portfolio/websites/imtiaz-mobile.jpg',
-    relatedProjectIds: ['imtiaz-taamine', 'cap-investment']
+    relatedProjectIds: ['imtiaz-taamine', 'cap-investment-solutions']
   }
 };
