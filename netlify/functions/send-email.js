@@ -1,6 +1,6 @@
-const nodemailer = require('nodemailer');
+import nodemailer from 'nodemailer';
 
-exports.handler = async (event, context) => {
+export const handler = async (event, context) => {
   // Enable CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -65,7 +65,7 @@ exports.handler = async (event, context) => {
           </div>
         </div>
       `;
-    } else if (formType === 'website' || formType === 'community') {
+    } else if (formType === 'website' || formType === 'community' || formType === 'branding') {
       clientName = clientInfo?.name || data.name || 'Prospect';
       clientEmail = clientInfo?.email || data.email || '';
       const clientPhone = clientInfo?.phone || 'Non renseigné';
@@ -74,6 +74,8 @@ exports.handler = async (event, context) => {
 
       emailTitle = formType === 'website' 
         ? 'Nouveau Questionnaire - Création de Site Web (SALI DigiCom)' 
+        : formType === 'branding'
+        ? 'Nouveau Questionnaire - Identité Visuelle & Branding (SALI DigiCom)'
         : 'Nouveau Questionnaire - Community Management (SALI DigiCom)';
 
       let responsesRows = '';
