@@ -917,33 +917,47 @@ export function SaliDigiCom({
       </section>
 
       {/* =====================================================================
-          SEQUENCE 5 — PINNED 3D Z-SPACE TUNNEL GALLERY & PRISM CTA (chunk-500)
+          SEQUENCE 5 — PINNED 3D Z-SPACE TUNNEL GALLERY & 2 CTA BUTTONS
          ===================================================================== */}
       <section id="poles" ref={tunnelSecRef} className="dc-tunnel-section bg-[#1C2C46]">
         {/* Desktop Pinned 3D Z-Corridor (>= 1024px) */}
-        <div className="dc-tunnel-sticky">
-          {/* Centered Dynamic CTA Diamond Button */}
-          <div className="dc-tunnel-center-cta pointer-events-auto">
-            <MagneticPrismCta
-              label={isAllProjectsPassed ? 'Voir tous nos projets' : 'Voir le projet'}
-              ariaLabel={
-                isAllProjectsPassed
-                  ? 'Voir toutes nos réalisations'
-                  : `Voir le projet ${PORTFOLIO_PROJECTS[activePoleIndex]?.title || ''}`
-              }
-              dashOffset={prismDashOffset}
-              onClick={() => {
-                if (isAllProjectsPassed) {
-                  handleOpenAllProjects();
-                } else {
-                  handleOpenProject(PORTFOLIO_PROJECTS[activePoleIndex]);
-                }
-              }}
-            />
+        <div className="dc-tunnel-sticky relative overflow-hidden">
+          {/* Titre du projet actif sur le côté droit (conforme au modèle Digital Cover) */}
+          <div className="absolute right-10 top-1/2 -translate-y-1/2 text-right pointer-events-none z-20 hidden md:block">
+            <div className="text-[26px] lg:text-[32px] font-extrabold text-white tracking-tight drop-shadow-md">
+              {PORTFOLIO_PROJECTS[activePoleIndex]?.title}
+            </div>
+            <div className="text-[11px] uppercase tracking-[0.2em] text-[#1D9878] font-bold mt-1">
+              {PORTFOLIO_PROJECTS[activePoleIndex]?.categoryLabel}
+            </div>
           </div>
 
-          {/* 3D Perspective Multi-Card Constellations flying past the 360°-spinning SD Diamond */}
+          {/* 3D Perspective Stage */}
           <div className="dc-tunnel-stage" aria-label="Galerie 3D des réalisations SALI DigiCom">
+            {/* Bouton 2: Placé au centre géométrique de l'écran, en profondeur Z DERRIÈRE les planches de projets */}
+            <div
+              className={`dc-tunnel-center-behind-cta transition-opacity duration-700 ease-out ${
+                isAllProjectsPassed ? 'opacity-100 pointer-events-auto' : 'opacity-70 pointer-events-none'
+              }`}
+            >
+              <button
+                type="button"
+                onClick={handleOpenAllProjects}
+                className="dc-tunnel-diamond-btn group"
+                aria-label="Voir toutes nos réalisations"
+              >
+                <div className="dc-tunnel-diamond-content">
+                  <svg className="w-6 h-6 text-[#1D9878] mb-1.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  <span className="text-[12px] font-bold text-white tracking-wider underline underline-offset-4 decoration-[#1D9878]">
+                    Voir tous nos projets
+                  </span>
+                </div>
+              </button>
+            </div>
+
+            {/* Planches de projets en format portrait (z-index 20+ passant DEVANT Bouton 2) */}
             {PORTFOLIO_PROJECTS.map((proj, idx) => (
               <button
                 key={`tunnel-${proj.id}`}
@@ -974,7 +988,6 @@ export function SaliDigiCom({
                 className="dc-tunnel-plate group"
                 aria-label={`Étude de cas : ${proj.title}`}
               >
-                {/* 1 Projet = 1 Planche Portrait haute définition avec gouttières ("routes") et 100% couleur réelle */}
                 <div className="dc-tunnel-single-card">
                   <img
                     src={proj.portraitBoard || proj.primaryImage}
@@ -987,53 +1000,30 @@ export function SaliDigiCom({
             ))}
           </div>
 
-          {/* Sticky HUD Overlay (.b-project-gallery-fixed) */}
-          <div className="dc-container dc-tunnel-hud">
-            <div className="dc-tunnel-hud-top">
-              <div>
-                <SuptitleTag label="Portfolio Réel & Constellation 3D" />
-                <h2 className="dc-h2">Nos Réalisations Clientes</h2>
+          {/* Bouton 1: Calé en BAS du viewport, actif sur les projets 1 à 4, disparaît à l'avant-dernier projet */}
+          <div
+            className={`dc-tunnel-bottom-cta transition-all duration-500 ease-out ${
+              isAllProjectsPassed
+                ? 'opacity-0 pointer-events-none translate-y-6'
+                : 'opacity-100 pointer-events-auto translate-y-0'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => handleOpenProject(PORTFOLIO_PROJECTS[activePoleIndex])}
+              className="dc-tunnel-diamond-btn group"
+              aria-label={`Voir le projet ${PORTFOLIO_PROJECTS[activePoleIndex]?.title || ''}`}
+            >
+              <div className="dc-tunnel-diamond-content">
+                <svg className="w-5 h-5 text-[#1D9878] mb-1 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span className="text-[12px] font-bold text-white tracking-wider underline underline-offset-4 decoration-[#1D9878]">
+                  Voir le projet
+                </span>
               </div>
-
-              <div className="flex items-center gap-6 pointer-events-auto">
-                {/* Circular progress gauge */}
-                <div className="flex items-center gap-3">
-                  <div className="relative w-12 h-12 flex items-center justify-center">
-                    <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
-                      <circle cx="18" cy="18" r="15" fill="none" stroke="#243757" strokeWidth="2.5" />
-                      <circle
-                        cx="18"
-                        cy="18"
-                        r="15"
-                        fill="none"
-                        stroke="#1D9878"
-                        strokeWidth="2.5"
-                        strokeDasharray={94.2}
-                        strokeDashoffset={94.2 * (1 - (activePoleIndex + 1) / PORTFOLIO_PROJECTS.length)}
-                        className="transition-all duration-500 ease-out"
-                      />
-                    </svg>
-                    <span className="absolute text-xs font-bold text-white">
-                      0{activePoleIndex + 1}
-                    </span>
-                  </div>
-                  <span className="text-xs uppercase tracking-wider text-[#B8C7DA]">
-                    / 0{PORTFOLIO_PROJECTS.length}
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleOpenAllProjects}
-                  className="hidden md:inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full border border-[#243757] hover:border-[#1D9878] bg-[#131F33]/90 text-xs font-bold text-white uppercase tracking-wider hover:bg-[#1D9878]/15 transition-all shadow-lg"
-                >
-                  <svg className="w-4 h-4 text-[#1D9878]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                  </svg>
-                  <span>Toutes nos réalisations</span>
-                </button>
-              </div>
-            </div>
+            </button>
           </div>
         </div>
 
@@ -1423,39 +1413,10 @@ export function SaliDigiCom({
       </section>
 
       {/* =====================================================================
-          SEQUENCE 8 — ANGLED PRISM ROOF & MONUMENTAL FOOTER (footer.footer)
+          SEQUENCE 8 — MONUMENTAL FOOTER AVEC DEMI-TRIANGLE GÉOMÉTRIQUE AU BAS
          ===================================================================== */}
-      <svg
-        className="dc-footer-roof"
-        width="1440"
-        height="235"
-        viewBox="0 0 1440 235"
-        fill="none"
-        preserveAspectRatio="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        <path
-          d="M737.354 1.76012L1440 108.881L1440 235L0 235L1.10257e-05 108.881L701.146 1.76574C713.145 -0.0674311 725.354 -0.0693221 737.354 1.76012Z"
-          fill="url(#dcFooterRoofGrad)"
-        />
-        <defs>
-          <linearGradient
-            id="dcFooterRoofGrad"
-            x1="720"
-            y1="215"
-            x2="720"
-            y2="0"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop stopColor="#162338" />
-            <stop offset="1" stopColor="#1C2C46" />
-          </linearGradient>
-        </defs>
-      </svg>
-
-      <footer className="dc-footer">
-        <div className="dc-container-inset">
+      <footer className="dc-footer bg-[#1C2C46] relative overflow-hidden">
+        <div className="dc-container-inset relative z-10">
           <div className="dc-footer-grid">
             <div>
               <p className="text-[18px] text-white mb-2">Où nous trouver</p>
@@ -1514,6 +1475,45 @@ export function SaliDigiCom({
             <p className="max-w-[54ch]">
               Photographies &amp; séquences architecturales sous licence libre : Dietmar Rabich, A S M Jobaer, Basile Morin (CC BY-SA 4.0) et Peter Tomaszewicz (CC BY 3.0) via Wikimedia Commons.
             </p>
+          </div>
+
+          {/* Grand trait géométrique / Demi-triangle situé dans le footer tout en bas avec l'icône SD 3D */}
+          <div className="dc-footer-bottom-apex relative mt-16 pt-6 flex flex-col items-center justify-end overflow-hidden">
+            <svg
+              className="w-full max-w-5xl h-24 sm:h-32 pointer-events-none"
+              viewBox="0 0 1200 140"
+              fill="none"
+              preserveAspectRatio="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path
+                d="M0 140L600 14L1200 140H0Z"
+                fill="url(#dcFooterApexGrad)"
+                stroke="rgba(29, 152, 120, 0.45)"
+                strokeWidth="1.5"
+              />
+              <defs>
+                <linearGradient id="dcFooterApexGrad" x1="600" y1="14" x2="600" y2="140" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#131F33" stopOpacity="0.95" />
+                  <stop offset="1" stopColor="#1C2C46" stopOpacity="0.98" />
+                </linearGradient>
+              </defs>
+            </svg>
+
+            {/* Présence de l'icône SD 3D au bas du footer */}
+            <div className="absolute bottom-4 flex flex-col items-center pointer-events-none">
+              <div className="w-14 h-14 rounded-full border border-[#1D9878]/40 flex items-center justify-center bg-[#131F33]/85 backdrop-blur-md shadow-lg shadow-[#1D9878]/15">
+                <img
+                  src="/logo-digicom-white-icon.png"
+                  alt="SD Monogram"
+                  className="w-7 h-7 object-contain opacity-95"
+                />
+              </div>
+              <span className="text-[10px] font-bold tracking-[0.25em] text-[#1D9878] uppercase mt-1.5">
+                SALI DigiCom Architecture
+              </span>
+            </div>
           </div>
         </div>
 

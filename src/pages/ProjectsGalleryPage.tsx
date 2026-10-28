@@ -1,285 +1,270 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { PORTFOLIO_PROJECTS, PortfolioProject } from '../data/portfolioProjects';
 import Logo from '../components/Logo';
 import { useRouter } from '../utils/router';
-import { ArrowLeft, ExternalLink, ArrowRight, Sparkles } from 'lucide-react';
+import { subscribeMotion } from '../components/MotionPrimitives';
 
-type FilterCategory = 'all' | 'web' | 'brand' | 'community';
+const clamp = (v: number, min: number, max: number): number => Math.min(max, Math.max(min, v));
 
 export function ProjectsGalleryPage() {
   const { navigate } = useRouter();
-  const [activeCategory, setActiveCategory] = useState<FilterCategory>('all');
+  const [activePoleIndex, setActivePoleIndex] = useState(0);
+  const activePoleRef = useRef(0);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAllProjectsPassed, setIsAllProjectsPassed] = useState(false);
+
+  const tunnelSecRef = useRef<HTMLElement | null>(null);
+  const tunnelPlateRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   useEffect(() => {
     document.title = 'Nos Réalisations | SALI DigiCom — Agence de Marketing & Communication Digitale';
     window.scrollTo(0, 0);
+
+    const unsub = subscribeMotion((s) => {
+      const secEl = tunnelSecRef.current;
+      if (!secEl) return;
+      const r = secEl.getBoundingClientRect();
+      const vh = Math.max(1, window.innerHeight);
+      const totalDist = Math.max(1, r.height - vh);
+      const gp = clamp(-r.top / totalDist, 0, 1);
+
+      setIsAllProjectsPassed(gp >= 0.78);
+
+      const spacingZ = 750;
+      const count = PORTFOLIO_PROJECTS.length;
+      const totalDepth = (count - 1) * spacingZ;
+      const cameraZ = -150 + gp * (totalDepth + 350);
+
+      let closestIdx = 0;
+      let minAbsZ = Infinity;
+
+      tunnelPlateRefs.current.forEach((plateEl, idx) => {
+        if (!plateEl) return;
+        const plateZ = idx * spacingZ;
+        const relZ = plateZ - cameraZ;
+        const absRelZ = Math.abs(relZ);
+
+        if (absRelZ < minAbsZ) {
+          minAbsZ = absRelZ;
+          closestIdx = idx;
+        }
+
+        const normDist = clamp((relZ + 1800) / 3600, 0, 1);
+        let alpha = 1.0;
+        if (relZ < -350) {
+          alpha = clamp((relZ + 800) / 450, 0, 1);
+        } else if (relZ > 2200) {
+          alpha = clamp((3200 - relZ) / 1000, 0, 1);
+        }
+
+        const sideSign = idx % 2 === 0 ? -1 : 1;
+        const lateralSpread = sideSign * (180 + normDist * 140);
+        const posX = lateralSpread + (idx - closestIdx) * 35;
+        const posY = Math.sin(idx * 1.3 + gp * 2.4) * 30;
+        const waveBendX = -3.2 + Math.cos(gp * 3.14 + idx) * 2.0;
+        const sideYaw = sideSign * -4.5;
+
+        plateEl.style.opacity = alpha.toFixed(3);
+        plateEl.style.pointerEvents = alpha > 0.32 ? 'auto' : 'none';
+        plateEl.style.zIndex = String(20 + idx * 2);
+        plateEl.style.transform = `translate3d(calc(-50% + ${posX.toFixed(1)}px), calc(-50% + ${posY.toFixed(1)}px), ${relZ.toFixed(1)}px) rotateX(${waveBendX.toFixed(2)}deg) rotateY(${sideYaw.toFixed(2)}deg)`;
+      });
+
+      if (closestIdx !== activePoleRef.current) {
+        activePoleRef.current = closestIdx;
+        setActivePoleIndex(closestIdx);
+      }
+    });
+
+    return () => unsub();
   }, []);
 
-  const filteredProjects =
-    activeCategory === 'all'
-      ? PORTFOLIO_PROJECTS
-      : PORTFOLIO_PROJECTS.filter((p) => p.category === activeCategory);
-
-  const filterTabs: Array<{ id: FilterCategory; label: string; count: number }> = [
-    { id: 'all', label: 'Toutes les réalisations', count: PORTFOLIO_PROJECTS.length },
-    {
-      id: 'web',
-      label: 'Sites Web & Plateformes',
-      count: PORTFOLIO_PROJECTS.filter((p) => p.category === 'web').length,
-    },
-    {
-      id: 'brand',
-      label: 'Identité & Branding',
-      count: PORTFOLIO_PROJECTS.filter((p) => p.category === 'brand').length,
-    },
-    {
-      id: 'community',
-      label: 'Community Management',
-      count: PORTFOLIO_PROJECTS.filter((p) => p.category === 'community').length,
-    },
-  ];
+  const handleOpenProject = (proj: PortfolioProject) => {
+    navigate(`/projet/${proj.slug}`);
+  };
 
   return (
     <div className="min-h-screen bg-[#1C2C46] text-white font-['Montserrat',sans-serif] selection:bg-[#1D9878] selection:text-white">
-      {/* Sticky Header */}
-      <header className="sticky top-0 z-40 backdrop-blur-md bg-[#1C2C46]/90 border-b border-[#243757]/70">
-        <div className="max-w-7xl mx-auto px-6 py-4 md:px-12 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="group focus:outline-none"
-              aria-label="Accueil SALI DigiCom"
-            >
-              <Logo
-                variant="digicom"
-                type="horizontal"
-                className="h-8 md:h-9 w-auto opacity-95 group-hover:opacity-100 transition-opacity"
-              />
-            </button>
-            <span className="hidden sm:inline-block h-4 w-px bg-[#283D60]" />
-            <span className="hidden sm:inline-block text-[13px] tracking-wider uppercase text-[#1D9878] font-semibold">
-              Portfolio &amp; Études de Cas
-            </span>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2 px-4 py-2 rounded-full border border-[#243757] hover:border-[#1D9878] bg-[#131F33]/80 hover:bg-[#1D9878]/10 text-xs font-semibold text-[#B8C7DA] hover:text-white transition-all"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Retour à l'accueil</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigate('/creation-de-site-web')}
-              className="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1D9878] hover:bg-[#167d63] text-xs font-bold text-white shadow-md shadow-[#1D9878]/25 transition-all"
-            >
-              <span>Démarrer un projet</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-12 md:px-12 lg:py-16">
-        {/* Page Hero */}
-        <div className="mb-12 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1D9878]/15 border border-[#1D9878]/30 text-[#1D9878] text-xs font-bold uppercase tracking-widest mb-4">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#1D9878] animate-pulse" />
-            Agence de Marketing &amp; Communication Digitale
-          </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.1]">
-            Nos Réalisations
-          </h1>
-          <p className="mt-4 text-base sm:text-lg text-[#B8C7DA] leading-relaxed">
-            Découvrez nos productions concrètes pour CAP Investment, Gueliz Properties, Imtiaz Taamine, Axeon et CAP'ASSUR. Chaque projet est conçu sur-mesure pour atteindre l’excellence esthétique et des résultats mesurables.
-          </p>
-        </div>
-
-        {/* Filter Tabs */}
-        <div className="flex flex-wrap items-center gap-2.5 pb-8 mb-10 border-b border-[#243757]">
-          {filterTabs.map((tab) => {
-            const isActive = activeCategory === tab.id;
-            return (
+      {/* 3D Tunnel Réalisations */}
+      <section ref={tunnelSecRef} className="dc-tunnel-section bg-[#1C2C46]">
+        <div className="dc-tunnel-sticky relative overflow-hidden">
+          {/* Top Header Fixed Bar */}
+          <div className="absolute top-8 left-8 right-8 flex items-center justify-between z-40 pointer-events-none">
+            <div className="pointer-events-auto">
               <button
-                key={tab.id}
                 type="button"
-                onClick={() => setActiveCategory(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold transition-all duration-300 ${
-                  isActive
-                    ? 'bg-[#1D9878] text-white shadow-lg shadow-[#1D9878]/30'
-                    : 'bg-[#131F33] text-[#B8C7DA] hover:text-white hover:bg-[#243757] border border-[#243757]'
-                }`}
+                onClick={() => navigate('/')}
+                className="group focus:outline-none"
+                aria-label="Accueil SALI DigiCom"
               >
-                <span>{tab.label}</span>
-                <span
-                  className={`px-1.5 py-0.5 rounded-full text-[10px] ${
-                    isActive ? 'bg-white/20 text-white' : 'bg-[#1C2C46] text-[#B8C7DA]'
-                  }`}
-                >
-                  {tab.count}
+                <Logo variant="digicom" type="horizontal" className="h-8 md:h-9 w-auto opacity-95 group-hover:opacity-100 transition-opacity" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-4 pointer-events-auto">
+              <button
+                type="button"
+                onClick={() => navigate('/')}
+                className="px-4 py-2 rounded-full border border-white/20 hover:border-[#1D9878] bg-[#131F33]/80 hover:bg-[#1D9878]/15 text-xs font-semibold text-[#B8C7DA] hover:text-white transition-all shadow-md"
+              >
+                ← Retour à l'accueil
+              </button>
+            </div>
+          </div>
+
+          {/* Right side active project name typography */}
+          <div className="absolute right-10 top-1/2 -translate-y-1/2 text-right pointer-events-none z-20 hidden md:block">
+            <div className="text-[26px] lg:text-[32px] font-extrabold text-white tracking-tight drop-shadow-md">
+              {PORTFOLIO_PROJECTS[activePoleIndex]?.title}
+            </div>
+            <div className="text-[11px] uppercase tracking-[0.2em] text-[#1D9878] font-bold mt-1">
+              {PORTFOLIO_PROJECTS[activePoleIndex]?.categoryLabel}
+            </div>
+          </div>
+
+          {/* 3D Perspective Stage */}
+          <div className="dc-tunnel-stage" aria-label="Galerie 3D des réalisations SALI DigiCom">
+            {PORTFOLIO_PROJECTS.map((proj, idx) => (
+              <button
+                key={`tunnel-page-${proj.id}`}
+                ref={(el) => {
+                  tunnelPlateRefs.current[idx] = el;
+                }}
+                type="button"
+                onClick={() => handleOpenProject(proj)}
+                className="dc-tunnel-plate group"
+                aria-label={`Étude de cas : ${proj.title}`}
+              >
+                <div className="dc-tunnel-single-card">
+                  <img
+                    src={proj.portraitBoard || proj.primaryImage}
+                    alt={proj.title}
+                    loading="eager"
+                    className="w-full h-full object-cover select-none"
+                  />
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Bouton 1: Calé en BAS du viewport */}
+          <div
+            className={`dc-tunnel-bottom-cta transition-all duration-500 ease-out ${
+              isAllProjectsPassed
+                ? 'opacity-0 pointer-events-none translate-y-6'
+                : 'opacity-100 pointer-events-auto translate-y-0'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => handleOpenProject(PORTFOLIO_PROJECTS[activePoleIndex])}
+              className="dc-tunnel-diamond-btn group"
+              aria-label={`Voir le projet ${PORTFOLIO_PROJECTS[activePoleIndex]?.title || ''}`}
+            >
+              <div className="dc-tunnel-diamond-content">
+                <svg className="w-5 h-5 text-[#1D9878] mb-1 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span className="text-[12px] font-bold text-white tracking-wider underline underline-offset-4 decoration-[#1D9878]">
+                  Voir le projet
                 </span>
-              </button>
-            );
-          })}
+              </div>
+            </button>
+          </div>
         </div>
+      </section>
 
-        {/* Projects Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProjects.map((project) => (
-            <article
-              key={project.id}
-              className="group relative rounded-2xl overflow-hidden border border-[#243757] bg-[#131F33] flex flex-col hover:border-[#1D9878] transition-all duration-500 hover:shadow-2xl hover:shadow-[#1D9878]/10"
-            >
-              {/* Image Frame — Portrait Board */}
-              <div
-                className="relative aspect-[10/14] overflow-hidden bg-[#0e1624] cursor-pointer"
-                onClick={() => navigate(`/projet/${project.slug}`)}
-              >
+      {/* Monumental Footer avec Demi-triangle géométrique tout en bas */}
+      <footer className="dc-footer bg-[#1C2C46] relative overflow-hidden">
+        <div className="dc-container-inset relative z-10">
+          <div className="dc-footer-grid">
+            <div>
+              <p className="text-[18px] text-white mb-2">Où nous trouver</p>
+              <a href="mailto:contact@sali-digicom.com" className="dc-hollow-city">
+                Casablanca
+              </a>
+              <div className="mt-4">
                 <img
-                  src={project.portraitBoard || project.primaryImage}
-                  alt={project.title}
+                  src="/logo-digicom-white-horizontal.png"
+                  alt="SALI DigiCom"
+                  className="h-7 w-auto opacity-80"
                   loading="lazy"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 select-none"
                 />
-
-                {/* Subtle Gradient Scrim at Bottom */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#131F33] via-transparent to-transparent opacity-80" />
-
-                {/* Client White Logo Tag */}
-                {project.whiteLogo && (
-                  <div className="absolute top-4 right-4 p-2 rounded-xl bg-[#131F33]/85 backdrop-blur-md border border-[#243757]/80">
-                    <img
-                      src={project.whiteLogo}
-                      alt={`Logo ${project.client}`}
-                      className="h-6 w-auto object-contain max-w-[90px]"
-                    />
-                  </div>
-                )}
-
-                {/* Category Pill */}
-                <div className="absolute top-4 left-4">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-[#1C2C46]/85 backdrop-blur-md text-[#1D9878] border border-[#1D9878]/30">
-                    {project.categoryLabel}
-                  </span>
-                </div>
               </div>
-
-              {/* Card Meta Content */}
-              <div className="p-6 flex-1 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between text-xs text-[#B8C7DA] mb-2">
-                    <span>{project.client}</span>
-                    <span>{project.city} · {project.year}</span>
-                  </div>
-
-                  <h2
-                    className="text-xl font-bold text-white group-hover:text-[#1D9878] transition-colors cursor-pointer"
-                    onClick={() => navigate(`/projet/${project.slug}`)}
-                  >
-                    {project.title}
-                  </h2>
-
-                  <p className="mt-2 text-xs text-[#B8C7DA] leading-relaxed line-clamp-2">
-                    {project.excerpt}
-                  </p>
-
-                  {/* Tags */}
-                  <div className="mt-4 flex flex-wrap gap-1.5">
-                    {project.tags.slice(0, 3).map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-2.5 py-0.5 rounded-full text-[10px] bg-[#1C2C46] text-[#B8C7DA] border border-[#243757]"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Card Action Buttons */}
-                <div className="mt-6 pt-4 border-t border-[#243757] flex items-center justify-between gap-3">
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/projet/${project.slug}`)}
-                    className="inline-flex items-center gap-2 text-xs font-bold text-white group-hover:text-[#1D9878] transition-colors"
-                  >
-                    <span>Explorer l'étude</span>
-                    <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
-                  </button>
-
-                  {project.liveUrl && (
-                    <a
-                      href={project.liveUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 rounded-lg bg-[#1C2C46] hover:bg-[#1D9878]/20 text-[#B8C7DA] hover:text-white border border-[#243757] transition-colors"
-                      title="Visiter le site en ligne"
-                      aria-label={`Visiter le site ${project.title} en ligne`}
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  )}
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        {/* Bottom CTA Section */}
-        <section className="mt-20 p-8 md:p-12 rounded-3xl bg-gradient-to-br from-[#131F33] to-[#1C2C46] border border-[#243757] text-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#1D9878]/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="max-w-2xl mx-auto relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1D9878]/15 border border-[#1D9878]/30 text-[#1D9878] text-xs font-bold uppercase tracking-widest mb-4">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Votre Projet Clé en Main</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
-              Prêt à hisser votre présence digitale au sommet ?
-            </h2>
-            <p className="mt-3 text-sm text-[#B8C7DA]">
-              Sélectionnez votre domaine d'intervention pour recevoir un cadrage stratégique et une proposition détaillée sous 24h.
-            </p>
 
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-              <button
-                type="button"
-                onClick={() => navigate('/creation-de-site-web')}
-                className="px-6 py-3 rounded-full bg-[#1D9878] hover:bg-[#167d63] text-xs font-bold text-white shadow-lg shadow-[#1D9878]/25 transition-all"
+            <div className="flex flex-col items-start md:items-end gap-3 text-[16px]">
+              <a href="tel:+212713370946" className="text-white hover:opacity-75 transition-opacity">
+                +212 713-370946
+              </a>
+              <a
+                href="mailto:contact@sali-digicom.com"
+                className="text-white hover:opacity-75 transition-opacity"
               >
-                Création de Site Web
-              </button>
-
-              <button
-                type="button"
-                onClick={() => navigate('/community-management')}
-                className="px-6 py-3 rounded-full bg-[#131F33] hover:bg-[#243757] border border-[#243757] hover:border-[#1D9878] text-xs font-bold text-white transition-all"
-              >
-                Community Management
-              </button>
-
-              <button
-                type="button"
-                onClick={() => navigate('/identite-visuelle')}
-                className="px-6 py-3 rounded-full bg-[#131F33] hover:bg-[#243757] border border-[#243757] hover:border-[#1D9878] text-xs font-bold text-white transition-all"
-              >
-                Identité Visuelle &amp; Branding
-              </button>
+                contact@sali-digicom.com
+              </a>
+              <p className="text-[#B8C7DA]">Casablanca, Maroc</p>
+              <div className="mt-2">
+                <button
+                  type="button"
+                  onClick={() => navigate('/creation-de-site-web')}
+                  className="dc-pill-btn"
+                >
+                  <span className="dc-pill-btn-fill" />
+                  <span className="dc-pill-btn-content">
+                    <span>Démarrer un projet</span>
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
-        </section>
-      </main>
 
-      {/* Footer */}
-      <footer className="mt-16 border-t border-[#243757] py-8 text-center text-xs text-[#B8C7DA]">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© {new Date().getFullYear()} SALI DigiCom. Filiale digitale de SALI Capital Group.</p>
-          <p>Casablanca &amp; Marrakech, Maroc · contact@sali-digicom.com · +212 713-370946</p>
+          <div className="dc-footer-bottom text-[16px] text-[#9a9a9a]">
+            <p>© {new Date().getFullYear()} SALI DigiCom. Tous droits réservés.</p>
+            <p className="max-w-[54ch]">
+              Photographies &amp; séquences architecturales sous licence libre : Dietmar Rabich, A S M Jobaer, Basile Morin (CC BY-SA 4.0) et Peter Tomaszewicz (CC BY 3.0) via Wikimedia Commons.
+            </p>
+          </div>
+
+          {/* Grand trait géométrique / Demi-triangle situé dans le footer tout en bas avec l'icône SD 3D */}
+          <div className="dc-footer-bottom-apex relative mt-16 pt-6 flex flex-col items-center justify-end overflow-hidden">
+            <svg
+              className="w-full max-w-5xl h-24 sm:h-32 pointer-events-none"
+              viewBox="0 0 1200 140"
+              fill="none"
+              preserveAspectRatio="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path
+                d="M0 140L600 14L1200 140H0Z"
+                fill="url(#dcFooterGalleryApexGrad)"
+                stroke="rgba(29, 152, 120, 0.45)"
+                strokeWidth="1.5"
+              />
+              <defs>
+                <linearGradient id="dcFooterGalleryApexGrad" x1="600" y1="14" x2="600" y2="140" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#131F33" stopOpacity="0.95" />
+                  <stop offset="1" stopColor="#1C2C46" stopOpacity="0.98" />
+                </linearGradient>
+              </defs>
+            </svg>
+
+            {/* Présence de l'icône SD 3D au bas du footer */}
+            <div className="absolute bottom-4 flex flex-col items-center pointer-events-none">
+              <div className="w-14 h-14 rounded-full border border-[#1D9878]/40 flex items-center justify-center bg-[#131F33]/85 backdrop-blur-md shadow-lg shadow-[#1D9878]/15">
+                <img
+                  src="/logo-digicom-white-icon.png"
+                  alt="SD Monogram"
+                  className="w-7 h-7 object-contain opacity-95"
+                />
+              </div>
+              <span className="text-[10px] font-bold tracking-[0.25em] text-[#1D9878] uppercase mt-1.5">
+                SALI DigiCom Architecture
+              </span>
+            </div>
+          </div>
         </div>
       </footer>
     </div>

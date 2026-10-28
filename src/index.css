@@ -1070,17 +1070,62 @@ a {
   perspective: 1120px;
 }
 
-.dc-tunnel-center-cta {
+.dc-tunnel-bottom-cta {
   position: absolute;
+  bottom: 36px;
   left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 50;
+  transform: translateX(-50%);
+  z-index: 45;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  pointer-events: auto;
+}
+
+.dc-tunnel-center-behind-cta {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5; /* Derrière les planches 3D à z-index 20+ */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.dc-tunnel-diamond-btn {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  background: rgba(20, 32, 52, 0.78);
+  backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(255, 255, 255, 0.75);
+  border-radius: 20px;
+  transform: rotate(45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.35);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dc-tunnel-diamond-btn:hover {
+  transform: rotate(45deg) scale(1.08);
+  border-color: #1D9878;
+  background: rgba(29, 152, 120, 0.3);
+  box-shadow: 0 20px 48px rgba(29, 152, 120, 0.4);
+}
+
+.dc-tunnel-diamond-content {
+  transform: rotate(-45deg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .dc-tunnel-stage {

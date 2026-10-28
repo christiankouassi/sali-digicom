@@ -305,6 +305,7 @@ export default function WebGLPrism({ menuOpen = false, isReady = true }: WebGLPr
       const atelierEl = document.getElementById('atelier');
       const sentenceEl = document.getElementById('sentence');
       const polesEl = document.getElementById('poles');
+      const expertisesEl = document.getElementById('expertises');
       const footerEl = document.querySelector('.dc-footer');
 
       const vh = Math.max(1, height);
@@ -335,43 +336,53 @@ export default function WebGLPrism({ menuOpen = false, isReady = true }: WebGLPr
         const atelierRect = atelierEl?.getBoundingClientRect();
         const sentenceRect = sentenceEl?.getBoundingClientRect();
         const polesRect = polesEl?.getBoundingClientRect();
+        const expertisesRect = expertisesEl?.getBoundingClientRect();
         const footerRect = footerEl?.getBoundingClientRect();
 
-        if (footerRect && footerRect.top < vh * 0.92) {
-          // Footer mode: continuous spin hovering above Casablanca roof line
-          const fp = clamp01((vh * 0.92 - footerRect.top) / Math.max(1, vh * 0.7));
+        if (footerRect && footerRect.top < vh * 0.95) {
+          // Footer mode: anchored at the bottom of the footer above the angled bottom ridge
+          const fp = clamp01((vh * 0.95 - footerRect.top) / Math.max(1, vh * 0.7));
           continuousSpinAccum += s.reducedMotion ? 0 : 0.014;
           goalX = 0.0;
-          goalY = 0.34 - fp * 0.16;
-          goalZ = isMobile ? -5.9 : -5.15;
+          goalY = isMobile ? -0.42 : -0.36; // Calé tout en bas du footer
+          goalZ = isMobile ? -5.8 : -5.0;
           goalScale = isMobile ? 0.68 : 0.86;
-          goalOpacity = 0.84;
-          waypointRotX = 0.50;
+          goalOpacity = 0.88;
+          waypointRotX = 0.45;
           waypointRotY = 0.8 + continuousSpinAccum;
-          waypointRotZ = -0.14;
-        } else if (polesRect && polesRect.top < vh * 0.85 && polesRect.bottom > vh * 0.15) {
-          // 3D Multi-Card Tunnel Gallery: centered diamond executing a continuous 360-deg (2*PI) rotation!
-          const span = Math.max(1, polesRect.height - vh * 0.5);
-          const gp = clamp01((vh * 0.5 - polesRect.top) / span);
-          goalX = 0.0;
+          waypointRotZ = -0.12;
+        } else if (expertisesRect && expertisesRect.top < vh * 0.85 && expertisesRect.bottom > vh * 0.15) {
+          // Section Expertises: sort de la droite vers la gauche, tourne au moins 1.5 à 2 fois, grossit et disparaît en bas
+          const ep = clamp01((vh * 0.80 - expertisesRect.top) / Math.max(1, expertisesRect.height - vh * 0.25));
+          goalX = isMobile ? (0.8 - ep * 0.8) : (3.4 - ep * 2.8); // Apparition droite -> gauche
           goalY = 0.02;
-          goalZ = isMobile ? -5.85 : -5.05;
-          goalScale = isMobile ? 0.76 : 0.94;
-          goalOpacity = isMobile ? 0.48 : 0.88;
-          waypointRotX = 0.48 + Math.sin(gp * Math.PI) * 0.22;
-          waypointRotY = 0.26 + gp * Math.PI * 2.0;
-          waypointRotZ = -0.22 + gp * 0.38;
+          goalZ = (isMobile ? -5.4 : -4.8) + ep * 4.2; // Grossit et avance vers la caméra
+          goalScale = (isMobile ? 0.72 : 0.90) + ep * 3.2; // Échelle dynamique
+          goalOpacity = ep > 0.84 ? Math.max(0, 1.0 - (ep - 0.84) * 6.0) : Math.min(0.95, ep * 3.5);
+          waypointRotX = 0.42 + Math.sin(ep * Math.PI) * 0.18;
+          waypointRotY = 0.25 + ep * Math.PI * 3.5; // ~1.75 tours complets
+          waypointRotZ = 0.14 - ep * 0.28;
+        } else if (polesRect && polesRect.top < vh * 0.85 && polesRect.bottom > vh * 0.15) {
+          // 3D Multi-Card Tunnel Gallery: parked behind the cards
+          goalX = 0.0;
+          goalY = -4.5;
+          goalZ = -6.0;
+          goalScale = 0.5;
+          goalOpacity = 0.0;
+          waypointRotX = 0.48;
+          waypointRotY = 0.26;
+          waypointRotZ = 0.0;
         } else if (sentenceRect && sentenceRect.top < vh * 0.9 && sentenceRect.bottom > vh * 0.1) {
-          // Sticky Kinetic Sentence: the SD emblem re-enters gracefully FROM THE BOTTOM
+          // Sticky Kinetic Sentence: the SD emblem re-enters, descends, settles, then scales up and exits
           const span = Math.max(1, sentenceRect.height);
           const sp = clamp01((vh * 0.85 - sentenceRect.top) / span);
           goalX = 0.0;
-          goalY = -3.2 + sp * 3.2; // Rises from bottom (-3.2) up to centered (0.0)!
-          goalZ = isMobile ? -5.5 : -4.85;
-          goalScale = isMobile ? 0.82 : 0.98;
-          goalOpacity = clamp01(sp * 1.6) * 0.92;
+          goalY = sp < 0.35 ? (1.5 - sp * 4.2) : 0.0; // Descend, se cale au centre
+          goalZ = (isMobile ? -5.5 : -4.85) + (sp > 0.65 ? (sp - 0.65) * 5.2 : 0);
+          goalScale = (isMobile ? 0.82 : 0.98) + (sp > 0.65 ? (sp - 0.65) * 3.5 : 0);
+          goalOpacity = sp > 0.85 ? Math.max(0, 1.0 - (sp - 0.85) * 6.5) : clamp01(sp * 2.0) * 0.92;
           waypointRotX = 0.38;
-          waypointRotY = 0.26 + sp * Math.PI * 0.8;
+          waypointRotY = 0.26 + sp * Math.PI * 2.5; // Rotation continue
           waypointRotZ = -0.18;
         } else if (atelierRect && atelierRect.top < vh * 0.85 && atelierRect.bottom > vh * 0.15) {
           // Showreel stage: logo is completely OFF-SCREEN below the viewport
@@ -384,28 +395,27 @@ export default function WebGLPrism({ menuOpen = false, isReady = true }: WebGLPr
           waypointRotY = 0.26;
           waypointRotZ = 0.0;
         } else if (introRect && introRect.bottom > vh * 0.15) {
-          // Digital Cover Hero Exit: Emblem zooms forward towards camera and completely exits the screen
-          const span = Math.max(1, introRect.height - vh);
+          // Digital Cover Hero Exit: Emblem zooms forward with continuous 1.5-2 turns spin, no blue dead zone
+          const span = Math.max(1, introRect.height - vh * 0.2);
           const hp = clamp01(-introRect.top / span);
           goalX = 0.0;
-          goalY = hp * 0.10;
-          goalZ = (isMobile ? -5.75 : -4.95) + hp * 7.5; // Zooms forward from -4.95 past camera (+2.55)!
-          goalScale = (isMobile ? 0.78 : 0.95) + hp * 4.2; // Massive expansion up to ~5.15
-          goalOpacity = hp > 0.65 ? Math.max(0, 1.0 - (hp - 0.65) * 3.5) : 0.95;
-          waypointRotX = 0.44 + hp * 0.15;
-          waypointRotY = 0.26 + hp * 0.45;
-          waypointRotZ = -0.22;
+          goalY = hp * 0.08;
+          goalZ = (isMobile ? -5.75 : -4.95) + hp * 7.8; // Zooms forward from -4.95 past camera (+2.85)
+          goalScale = (isMobile ? 0.78 : 0.95) + hp * 4.8; // Massive expansion up to ~5.75
+          goalOpacity = hp > 0.88 ? Math.max(0, 1.0 - (hp - 0.88) * 8.3) : 0.95; // Seamless overlap, zero blue screen
+          waypointRotX = 0.44 + hp * 0.18;
+          waypointRotY = 0.26 + hp * Math.PI * 3.5; // ~1.75 tours complets de rotation continue
+          waypointRotZ = -0.22 + hp * 0.15;
         } else {
-          // Services & Forms right-axis poise
-          const spGlobal = clamp01(s.smoothY / Math.max(1, s.maxScroll));
-          goalX = isMobile ? 0.0 : 0.56;
+          // Default idle
+          goalX = 0.0;
           goalY = 0.0;
-          goalZ = -5.45;
-          goalScale = isMobile ? 0.70 : 0.84;
-          goalOpacity = isMobile ? 0.34 : 0.52;
-          waypointRotX = 0.58;
-          waypointRotY = spGlobal * Math.PI * 2.4;
-          waypointRotZ = 0.12;
+          goalZ = -5.2;
+          goalScale = 0.85;
+          goalOpacity = 0.0;
+          waypointRotX = 0.4;
+          waypointRotY = 0.2;
+          waypointRotZ = 0.0;
         }
       }
 
