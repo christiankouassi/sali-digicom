@@ -6,7 +6,8 @@ export type AppRoute =
   | { type: 'questionnaire-community' }
   | { type: 'questionnaire-branding' }
   | { type: 'projects-gallery' }
-  | { type: 'project-case-study'; slug: string };
+  | { type: 'project-case-study'; slug: string }
+  | { type: 'service-detail'; slug: string };
 
 export function parseRoute(pathname: string): AppRoute {
   // Normalize pathname: remove trailing slash except for root
@@ -30,6 +31,14 @@ export function parseRoute(pathname: string): AppRoute {
   if (cleanPath.startsWith('/projet/')) {
     const slug = cleanPath.slice('/projet/'.length);
     return { type: 'project-case-study', slug };
+  }
+  if (cleanPath.startsWith('/services/')) {
+    const slug = cleanPath.slice('/services/'.length);
+    return { type: 'service-detail', slug };
+  }
+  if (cleanPath.startsWith('/service/')) {
+    const slug = cleanPath.slice('/service/'.length);
+    return { type: 'service-detail', slug };
   }
   // Fallback to home
   return { type: 'home' };

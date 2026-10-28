@@ -340,28 +340,27 @@ export default function WebGLPrism({ menuOpen = false, isReady = true }: WebGLPr
         const footerRect = footerEl?.getBoundingClientRect();
 
         if (footerRect && footerRect.top < vh * 0.95) {
-          // Footer mode: anchored at the bottom of the footer above the angled bottom ridge
-          const fp = clamp01((vh * 0.95 - footerRect.top) / Math.max(1, vh * 0.7));
-          continuousSpinAccum += s.reducedMotion ? 0 : 0.014;
-          goalX = 0.0;
-          goalY = isMobile ? -0.42 : -0.36; // Calé tout en bas du footer
-          goalZ = isMobile ? -5.8 : -5.0;
-          goalScale = isMobile ? 0.68 : 0.86;
-          goalOpacity = 0.88;
-          waypointRotX = 0.45;
-          waypointRotY = 0.8 + continuousSpinAccum;
-          waypointRotZ = -0.12;
+          // Footer mode: anchored at the bottom of the footer above the bottom copyright bar
+          continuousSpinAccum += s.reducedMotion ? 0 : 0.016;
+          goalX = 0.0; // Strictly centered
+          goalY = isMobile ? -0.38 : -0.32; // Centered at the bottom of the footer
+          goalZ = isMobile ? -5.5 : -4.8;
+          goalScale = isMobile ? 0.72 : 0.95;
+          goalOpacity = 0.92;
+          waypointRotX = 0.38;
+          waypointRotY = 0.45 + continuousSpinAccum;
+          waypointRotZ = -0.08;
         } else if (expertisesRect && expertisesRect.top < vh * 0.85 && expertisesRect.bottom > vh * 0.15) {
-          // Section Expertises: sort de la droite vers la gauche, tourne au moins 1.5 à 2 fois, grossit et disparaît en bas
+          // Section Expertises: located on the RIGHT side (where the text is), spins dynamically, scales and stays on the right
           const ep = clamp01((vh * 0.80 - expertisesRect.top) / Math.max(1, expertisesRect.height - vh * 0.25));
-          goalX = isMobile ? (0.8 - ep * 0.8) : (3.4 - ep * 2.8); // Apparition droite -> gauche
-          goalY = 0.02;
-          goalZ = (isMobile ? -5.4 : -4.8) + ep * 4.2; // Grossit et avance vers la caméra
-          goalScale = (isMobile ? 0.72 : 0.90) + ep * 3.2; // Échelle dynamique
-          goalOpacity = ep > 0.84 ? Math.max(0, 1.0 - (ep - 0.84) * 6.0) : Math.min(0.95, ep * 3.5);
-          waypointRotX = 0.42 + Math.sin(ep * Math.PI) * 0.18;
+          goalX = isMobile ? 0.0 : (2.2 - ep * 0.5); // Remains on the right side over the text column
+          goalY = 0.15 - ep * 0.35; // Slides gracefully downwards as user scrolls through services
+          goalZ = (isMobile ? -5.4 : -4.75) + ep * 2.8; // Subtle zoom
+          goalScale = (isMobile ? 0.70 : 0.92) + ep * 1.6; // Progressive elegant scale
+          goalOpacity = ep > 0.88 ? Math.max(0, 1.0 - (ep - 0.88) * 8.0) : Math.min(0.95, ep * 3.5);
+          waypointRotX = 0.40 + Math.sin(ep * Math.PI) * 0.14;
           waypointRotY = 0.25 + ep * Math.PI * 3.5; // ~1.75 tours complets
-          waypointRotZ = 0.14 - ep * 0.28;
+          waypointRotZ = 0.10 - ep * 0.20;
         } else if (polesRect && polesRect.top < vh * 0.85 && polesRect.bottom > vh * 0.15) {
           // 3D Multi-Card Tunnel Gallery: parked behind the cards
           goalX = 0.0;

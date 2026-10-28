@@ -214,7 +214,7 @@ export function ProjectCaseStudy({
             Un projet similaire pour votre entreprise ?
           </h3>
           <p className="text-[#B8C7DA] text-base max-w-xl mx-auto mb-8">
-            Obtenez un cadrage sur mesure et une proposition chiffrée adaptée à vos objectifs en quelques étapes.
+            Obtenez un cadrage sur mesure et un devis personnalisé adapté à vos objectifs en quelques étapes.
           </p>
           <button
             type="button"

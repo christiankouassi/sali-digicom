@@ -11,6 +11,8 @@ import {
 import { PORTFOLIO_PROJECTS, PortfolioProject } from '../data/portfolioProjects';
 import { ProjectCaseStudy } from './ProjectCaseStudy';
 import { ProjectsGalleryModal } from './ProjectsGalleryModal';
+import { useRouter } from '../utils/router';
+import { ArrowUpRight } from 'lucide-react';
 
 export interface SaliDigiComProps {
   isActive: boolean;
@@ -65,6 +67,7 @@ const CLIENT_LOGOS = [
 
 const EXPERTISES = [
   {
+    slug: 'web',
     title: 'Conception & Développement',
     detail:
       'Plateformes web haute performance, applications sur-mesure et architectures e-commerce robustes adaptées à vos objectifs d’acquisition.',
@@ -72,6 +75,7 @@ const EXPERTISES = [
     alt: 'Architecture web et mobile haute performance CAP Investment Solutions',
   },
   {
+    slug: 'branding',
     title: 'Identité de Marque & Design',
     detail:
       'Logotype statutaire, charte graphique complète, design system et direction artistique sur mesure pour imposer votre autorité.',
@@ -79,6 +83,7 @@ const EXPERTISES = [
     alt: 'Charte graphique officielle et identité statutaire CAP’ASSUR',
   },
   {
+    slug: 'social-media',
     title: 'Stratégie & Visibilité',
     detail:
       'Stratégie éditoriale social media, campagnes de conversion ciblées, référencement naturel (SEO) et production visuelle continue.',
@@ -86,6 +91,7 @@ const EXPERTISES = [
     alt: 'Campagne de visibilité éditoriale et publicitaire Axeon Media',
   },
   {
+    slug: 'ia-solutions',
     title: 'Intelligence Artificielle & Automatisation',
     detail:
       'Intégration d’agents intelligents, qualification automatisée de prospects, chatbots conversationnels et flux opérationnels optimisés.',
@@ -112,6 +118,15 @@ export function SaliDigiCom({
   onOpenProject,
   runWithCurtain,
 }: SaliDigiComProps) {
+  const { navigate } = useRouter();
+
+  const handleOpenService = (slug: string) => {
+    if (runWithCurtain) {
+      runWithCurtain(() => navigate(`/services/${slug}`));
+    } else {
+      navigate(`/services/${slug}`);
+    }
+  };
   // Hero refs (chunk-930.js)
   const introRef = useRef<HTMLElement | null>(null);
   const topWordRef = useRef<HTMLDivElement | null>(null);
@@ -881,7 +896,7 @@ export function SaliDigiCom({
               >
                 <span className="dc-pill-btn-fill" />
                 <span className="dc-pill-btn-content">
-                  <span>Obtenir un chiffrage</span>
+                  <span>Demander un devis</span>
                 </span>
               </button>
             </div>
@@ -1106,34 +1121,51 @@ export function SaliDigiCom({
             </p>
           </div>
 
-          {/* Grille épurée : 5 logos monochromes sur 1 ligne fluide directement sur le fond Bleu Nuit #1C2C46 sans aucun cadre */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 items-start justify-items-center gap-8 lg:gap-10 max-w-6xl mx-auto">
-            {CLIENT_LOGOS.map((client) => (
-              <button
-                key={client.name}
-                type="button"
-                onClick={() => {
-                  const proj = PORTFOLIO_PROJECTS.find((p) => p.id === client.projectId);
-                  if (proj) handleOpenProject(proj);
-                }}
-                className="group flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 cursor-pointer bg-transparent border-0 p-0 focus:outline-none w-full max-w-[180px]"
-                aria-label={`Client ${client.name} - ${client.sector}`}
-              >
-                <div className="h-16 w-full flex items-center justify-center">
+          {/* Bento Grid 3 en haut / 2 en bas : logos agrandis 1.6x, zéro texte superflu, zéro bordure sur fond #1C2C46 */}
+          <div className="max-w-5xl mx-auto flex flex-col gap-10 md:gap-14">
+            {/* Ligne 1 : 3 logos */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 items-center justify-items-center gap-8 md:gap-12">
+              {CLIENT_LOGOS.slice(0, 3).map((client) => (
+                <button
+                  key={client.name}
+                  type="button"
+                  onClick={() => {
+                    const proj = PORTFOLIO_PROJECTS.find((p) => p.id === client.projectId);
+                    if (proj) handleOpenProject(proj);
+                  }}
+                  className="group flex items-center justify-center transition-all duration-300 hover:scale-105 cursor-pointer bg-transparent border-0 p-4 focus:outline-none w-full max-w-[260px] h-24 md:h-28"
+                  aria-label={`Client ${client.name}`}
+                >
                   <img
                     src={client.logo}
                     alt={`Logo ${client.name}`}
-                    className="max-h-12 w-auto max-w-[140px] md:max-w-[155px] object-contain opacity-75 group-hover:opacity-100 transition-opacity duration-300 select-none"
+                    className="max-h-16 md:max-h-20 w-auto max-w-[200px] md:max-w-[230px] object-contain opacity-80 group-hover:opacity-100 transition-opacity duration-300 select-none"
                   />
-                </div>
-                <span className="text-xs font-semibold text-[#B8C7DA] group-hover:text-white mt-3 text-center transition-colors">
-                  {client.name}
-                </span>
-                <span className="text-[10px] uppercase tracking-wider text-[#1D9878] mt-0.5 text-center">
-                  {client.sector}
-                </span>
-              </button>
-            ))}
+                </button>
+              ))}
+            </div>
+
+            {/* Ligne 2 : 2 logos centrés */}
+            <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16">
+              {CLIENT_LOGOS.slice(3, 5).map((client) => (
+                <button
+                  key={client.name}
+                  type="button"
+                  onClick={() => {
+                    const proj = PORTFOLIO_PROJECTS.find((p) => p.id === client.projectId);
+                    if (proj) handleOpenProject(proj);
+                  }}
+                  className="group flex items-center justify-center transition-all duration-300 hover:scale-105 cursor-pointer bg-transparent border-0 p-4 focus:outline-none w-full sm:w-auto max-w-[260px] h-24 md:h-28"
+                  aria-label={`Client ${client.name}`}
+                >
+                  <img
+                    src={client.logo}
+                    alt={`Logo ${client.name}`}
+                    className="max-h-16 md:max-h-20 w-auto max-w-[200px] md:max-w-[230px] object-contain opacity-80 group-hover:opacity-100 transition-opacity duration-300 select-none"
+                  />
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -1175,22 +1207,33 @@ export function SaliDigiCom({
                 {EXPERTISES.map((item, idx) => {
                   const isCurrent = idx === activeExpertise;
                   return (
-                    <button
+                    <div
                       key={item.title}
-                      type="button"
                       onMouseEnter={() => switchExpertise(idx)}
                       onFocus={() => switchExpertise(idx)}
-                      onClick={() => switchExpertise(idx)}
-                      className={`dc-service-row ${isCurrent ? 'is-active' : ''}`}
+                      onClick={() => handleOpenService(item.slug)}
+                      className={`dc-service-row ${isCurrent ? 'is-active' : ''} group cursor-pointer`}
+                      role="button"
+                      tabIndex={0}
                     >
                       <span className="dc-service-row-base" aria-hidden="true" />
                       <span className="dc-service-title">
                         <span>{item.title}</span>
+                        <span
+                          className="dc-service-arrow-pill"
+                          title={`Découvrir la page dédiée : ${item.title}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenService(item.slug);
+                          }}
+                        >
+                          <ArrowUpRight className="w-4 h-4 text-white group-hover:rotate-45 transition-transform" />
+                        </span>
                       </span>
                       <span className={`dc-service-desc-grid ${isCurrent ? 'is-open' : ''}`}>
                         <span className="dc-service-desc-inner">{item.detail}</span>
                       </span>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -1399,7 +1442,7 @@ export function SaliDigiCom({
 
               <div className="mt-10 flex flex-wrap items-center justify-between gap-6">
                 <p className="text-[16px] text-[#9a9a9a] max-w-[36ch]">
-                  Besoin d’un chiffrage guidé étape par étape ? Sélectionnez l'une des démarches ci-dessus ou contactez directement notre studio.
+                  Besoin d’un devis guidé étape par étape ? Sélectionnez l'une des démarches ci-dessus ou contactez directement notre studio.
                 </p>
                 <MagneticCta
                   type="submit"
@@ -1468,6 +1511,11 @@ export function SaliDigiCom({
                 </a>
               </div>
             </div>
+          </div>
+
+          {/* Espace architectural dédié pour l'icône SD 3D centrée en bas du footer */}
+          <div className="py-12 flex items-center justify-center relative pointer-events-none" aria-hidden="true">
+            <div className="w-16 h-16 opacity-0" />
           </div>
 
           <div className="dc-footer-bottom text-[16px] text-[#9a9a9a]">

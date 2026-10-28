@@ -11,6 +11,7 @@ import { RouterProvider, useRouter } from './utils/router';
 import { ProjectsGalleryPage } from './pages/ProjectsGalleryPage';
 import { ProjectCaseStudyPage } from './pages/ProjectCaseStudyPage';
 import { QuestionnairePage } from './pages/QuestionnairePage';
+import { ServiceDetailPage } from './pages/ServiceDetailPage';
 import { Globe, Share2, Sparkles, FolderKanban } from 'lucide-react';
 
 function AppContent() {
@@ -207,6 +208,15 @@ function AppContent() {
       <div className="min-h-screen bg-[#1C2C46]">
         <CurvedCurtainTransition transitionId={curtainId} onMidpoint={handleCurtainMidpoint} />
         <QuestionnairePage type="branding" />
+      </div>
+    );
+  }
+
+  if (route.type === 'service-detail') {
+    return (
+      <div className="min-h-screen bg-[#1C2C46]">
+        <CurvedCurtainTransition transitionId={curtainId} onMidpoint={handleCurtainMidpoint} />
+        <ServiceDetailPage slug={route.slug} />
       </div>
     );
   }

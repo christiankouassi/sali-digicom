@@ -52,7 +52,7 @@ export function QuestionnairePage({ type }: QuestionnairePageProps) {
             </button>
             <span className="hidden sm:inline-block h-4 w-px bg-[#283D60]" />
             <span className="hidden sm:inline-block text-[13px] tracking-wider uppercase text-[#1D9878] font-semibold">
-              Cadrage Projet &amp; Chiffrage
+              Cadrage Projet &amp; Devis
             </span>
           </div>
 

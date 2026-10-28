@@ -1146,7 +1146,7 @@ a {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: clamp(320px, 35vw, 540px);
+  width: clamp(230px, 24vw, 360px);
   aspect-ratio: 3 / 4;
   background-color: transparent;
   border: 0;
@@ -1449,12 +1449,36 @@ a {
 
 .dc-service-title {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
   font-size: clamp(20px, 1.85vw, 27px);
   line-height: 1.35;
   font-weight: 400;
+}
+
+.dc-service-arrow-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background-color: rgba(19, 31, 51, 0.6);
+  color: #FFFFFF;
+  transition: all 0.35s var(--dc-ease);
+  flex-shrink: 0;
+  margin-left: 16px;
+}
+
+.dc-service-row:hover .dc-service-arrow-pill,
+.dc-service-row.is-active .dc-service-arrow-pill {
+  border-color: var(--dc-accent);
+  background-color: var(--dc-accent);
+  color: #FFFFFF;
+  transform: scale(1.08);
+  box-shadow: 0 4px 16px rgba(29, 152, 120, 0.4);
 }
 
 /* Smooth CSS Grid row accordion for active expertise detail */
