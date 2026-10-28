@@ -82,12 +82,12 @@ Conformément à `main.css` de `digital-cover.com` :
   - `100%` — `Architectures conçues sur mesure pour chaque client`
   - `24h` — `Délai maximal de retour sur votre cadrage chiffré`
 
-### Séquence 7 — Sélecteur Interactif à Losanges (`t-forms`) & Configurateurs SALI DigiCom
+### Séquence 7 — Sélecteur Interactif à Losanges (`t-forms`) & Questionnaires Stratégiques SALI DigiCom
 - Indicateur losange : `Contact`
 - Titre `<h2>` (`<= 2 lignes`) : `Que recherchez-vous ?`
 - 3 lignes interactives monumentales (`clamp(24px, 2.6vw, 38px)`) précédées d'un losange `15x15px` (`1px solid #4c4c4c` -> rempli `#FFFFFF` au survol / sélection) :
-  1. `Lancer le configurateur Site Web` -> Déploie `QuestionnaireFlow` (`serviceType="website"`) en thème monochrome noir & blanc `digital-cover.com`.
-  2. `Lancer le configurateur Social Media` -> Déploie `QuestionnaireFlow` (`serviceType="community"`) en thème monochrome noir & blanc `digital-cover.com`.
+  1. `Démarrer mon projet Web` -> Déploie `QuestionnaireFlow` (`serviceType="website"`) sur `/creation-de-site-web`.
+  2. `Démarrer mon projet Social Media` -> Déploie `QuestionnaireFlow` (`serviceType="community"`) sur `/community-management`.
   3. `Écrire directement au studio` -> Déploie le formulaire épuré à filets inférieurs `#363636` relié à `POST /api/send-email` (`nom`, `email`, `téléphone`, `entreprise`, `message`) + cercle `.e-cta` `Envoyer`.
 
 ### Séquence 8 — Footer à Toit Prismatique (`footer.footer`)

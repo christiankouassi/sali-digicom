@@ -362,41 +362,39 @@ export default function WebGLPrism({ menuOpen = false, isReady = true }: WebGLPr
           waypointRotY = 0.26 + gp * Math.PI * 2.0;
           waypointRotZ = -0.22 + gp * 0.38;
         } else if (sentenceRect && sentenceRect.top < vh * 0.9 && sentenceRect.bottom > vh * 0.1) {
-          // Sticky Kinetic Sentence: diamond rises vertically behind the manifesto text
+          // Sticky Kinetic Sentence: the SD emblem re-enters gracefully FROM THE BOTTOM
           const span = Math.max(1, sentenceRect.height);
-          const sp = clamp01((vh * 0.75 - sentenceRect.top) / span);
+          const sp = clamp01((vh * 0.85 - sentenceRect.top) / span);
           goalX = 0.0;
-          goalY = (sp - 0.48) * 2.15;
-          goalZ = isMobile ? -5.6 : -4.85;
+          goalY = -3.2 + sp * 3.2; // Rises from bottom (-3.2) up to centered (0.0)!
+          goalZ = isMobile ? -5.5 : -4.85;
           goalScale = isMobile ? 0.82 : 0.98;
-          goalOpacity = 0.90;
-          waypointRotX = 0.42 + sp * 0.36;
-          waypointRotY = 0.35 + sp * Math.PI * 1.15;
-          waypointRotZ = -0.26 + sp * 0.24;
-        } else if (atelierRect && atelierRect.top < vh * 0.75 && atelierRect.bottom > vh * 0.2) {
-          // Showreel stage: step gently into depth so video commands focus
-          goalX = isMobile ? 0.0 : 0.42;
-          goalY = 0.06;
-          goalZ = -6.0;
+          goalOpacity = clamp01(sp * 1.6) * 0.92;
+          waypointRotX = 0.38;
+          waypointRotY = 0.26 + sp * Math.PI * 0.8;
+          waypointRotZ = -0.18;
+        } else if (atelierRect && atelierRect.top < vh * 0.85 && atelierRect.bottom > vh * 0.15) {
+          // Showreel stage: logo is completely OFF-SCREEN below the viewport
+          goalX = 0.0;
+          goalY = -4.5; // Off-screen bottom
+          goalZ = -4.85;
           goalScale = 0.80;
-          goalOpacity = 0.28;
-          waypointRotX = 0.62;
-          waypointRotY = 0.95;
-          waypointRotZ = -0.10;
-        } else if (introRect && introRect.bottom > vh * 0.25) {
-          // Digital Cover Signature Fly-Through Z on Hero exit (sheet_01 lines 3-4):
-          // As SALI and DigiCom split laterally off-screen, the 3D diamond plunges forward toward camera
-          // with a dramatic lateral sweep before descending behind the manifesto sentence!
+          goalOpacity = 0.0; // Completely hidden during video showcase
+          waypointRotX = 0.40;
+          waypointRotY = 0.26;
+          waypointRotZ = 0.0;
+        } else if (introRect && introRect.bottom > vh * 0.15) {
+          // Digital Cover Hero Exit: Emblem zooms forward towards camera and completely exits the screen
           const span = Math.max(1, introRect.height - vh);
           const hp = clamp01(-introRect.top / span);
-          goalX = isMobile ? 0.0 : hp * 0.38;
-          goalY = hp * 0.12;
-          goalZ = (isMobile ? -5.75 : -4.95) + hp * 2.15; // Plunges forward from -4.95 to -2.8!
-          goalScale = (isMobile ? 0.78 : 0.95) + hp * 0.22;
-          goalOpacity = 0.95 - hp * 0.08;
-          waypointRotX = 0.44 + hp * 0.32;
-          waypointRotY = 0.26 + hp * 1.65;
-          waypointRotZ = -0.22 + hp * 0.20;
+          goalX = 0.0;
+          goalY = hp * 0.10;
+          goalZ = (isMobile ? -5.75 : -4.95) + hp * 7.5; // Zooms forward from -4.95 past camera (+2.55)!
+          goalScale = (isMobile ? 0.78 : 0.95) + hp * 4.2; // Massive expansion up to ~5.15
+          goalOpacity = hp > 0.65 ? Math.max(0, 1.0 - (hp - 0.65) * 3.5) : 0.95;
+          waypointRotX = 0.44 + hp * 0.15;
+          waypointRotY = 0.26 + hp * 0.45;
+          waypointRotZ = -0.22;
         } else {
           // Services & Forms right-axis poise
           const spGlobal = clamp01(s.smoothY / Math.max(1, s.maxScroll));

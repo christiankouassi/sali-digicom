@@ -22,6 +22,8 @@ export interface SaliDigiComProps {
     type: 'website' | 'community' | 'branding',
     initialData?: { name?: string; phone?: string; email?: string; company?: string }
   ) => void;
+  onOpenAllProjects?: () => void;
+  onOpenProject?: (project: PortfolioProject) => void;
   runWithCurtain?: (action: () => void) => void;
 }
 
@@ -63,39 +65,32 @@ const CLIENT_LOGOS = [
 
 const EXPERTISES = [
   {
-    title: 'Conseil & Cadrage Stratégique',
+    title: 'Conception & Développement',
     detail:
-      'Audit de positionnement, architecture d’information et feuille de route chiffrée avant chaque mise en production.',
-    image: '/portfolio/websites/cap-section-desktop.jpg',
-    alt: 'Grille d’expertise financière et cadrage stratégique CAP Investment Solutions',
+      'Plateformes web haute performance, applications sur-mesure et architectures e-commerce robustes adaptées à vos objectifs d’acquisition.',
+    image: '/portfolio/websites/cap-mobile.jpg',
+    alt: 'Architecture web et mobile haute performance CAP Investment Solutions',
   },
   {
-    title: 'Design d’Interface & Expérience 3D',
+    title: 'Identité de Marque & Design',
     detail:
-      'Direction artistique sur mesure, micro-interactions fluides et parcours pensés pour la lisibilité mobile et desktop.',
-    image: '/portfolio/websites/gueliz-hero-desktop.jpg',
-    alt: 'Interface épurée et design d’exception pour Gueliz Properties',
+      'Logotype statutaire, charte graphique complète, design system et direction artistique sur mesure pour imposer votre autorité.',
+    image: '/portfolio/branding/capassur-charte-cover.jpg',
+    alt: 'Charte graphique officielle et identité statutaire CAP’ASSUR',
   },
   {
-    title: 'Développement Web & E-Commerce',
+    title: 'Stratégie & Visibilité',
     detail:
-      'Code propre, rapide et maintenable, connecté à vos outils de paiement, de prise de rendez-vous et de gestion.',
-    image: '/portfolio/websites/cap-hero-desktop.jpg',
-    alt: 'Architecture web haute performance CAP Investment Solutions',
-  },
-  {
-    title: 'Community Management & Création',
-    detail:
-      'Calendrier éditorial, conception de visuels, montage court et animation quotidienne de vos réseaux sociaux.',
+      'Stratégie éditoriale social media, campagnes de conversion ciblées, référencement naturel (SEO) et production visuelle continue.',
     image: '/portfolio/axeon/axeon-campagne-01.jpg',
-    alt: 'Création visuelle et campagne d’influence pour Axeon Media',
+    alt: 'Campagne de visibilité éditoriale et publicitaire Axeon Media',
   },
   {
-    title: 'Référencement Naturel & Acquisition',
+    title: 'Intelligence Artificielle & Automatisation',
     detail:
-      'Structure SEO durable, optimisation des temps de chargement et tunnel d’acquisition de prospects qualifiés.',
-    image: '/portfolio/websites/imtiaz-hero-desktop.jpg',
-    alt: 'Portail de devis et acquisition d’assurance Imtiaz Taamine',
+      'Intégration d’agents intelligents, qualification automatisée de prospects, chatbots conversationnels et flux opérationnels optimisés.',
+    image: '/portfolio/websites/imtiaz-mobile.jpg',
+    alt: 'Automatisation des flux de devis et acquisition digitale Imtiaz Taamine',
   },
 ];
 
@@ -113,6 +108,8 @@ export function SaliDigiCom({
   isReady = true,
   setCurrentSection,
   onOpenQuestionnaire,
+  onOpenAllProjects,
+  onOpenProject,
   runWithCurtain,
 }: SaliDigiComProps) {
   // Hero refs (chunk-930.js)
@@ -143,6 +140,8 @@ export function SaliDigiCom({
   const hoveredPoleRef = useRef<number | null>(null);
   const activePoleRef = useRef<number>(0);
   const [activePoleIndex, setActivePoleIndex] = useState(0);
+  const [isAllProjectsPassed, setIsAllProjectsPassed] = useState(false);
+  const isAllProjectsPassedRef = useRef(false);
   const [poleSwitchDir, setPoleSwitchDir] = useState<1 | -1>(1);
   const [prismDashOffset, setPrismDashOffset] = useState(340);
   const [inspectedPole, setInspectedPole] = useState<PoleItem | null>(null);
@@ -150,21 +149,37 @@ export function SaliDigiCom({
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
   const handleOpenProject = (proj: PortfolioProject) => {
-    if (runWithCurtain) {
-      runWithCurtain(() => setSelectedProject(proj));
+    if (onOpenProject) {
+      if (runWithCurtain) {
+        runWithCurtain(() => onOpenProject(proj));
+      } else {
+        onOpenProject(proj);
+      }
     } else {
-      setSelectedProject(proj);
+      if (runWithCurtain) {
+        runWithCurtain(() => setSelectedProject(proj));
+      } else {
+        setSelectedProject(proj);
+      }
+    }
+  };
+
+  const handleOpenAllProjects = () => {
+    if (onOpenAllProjects) {
+      if (runWithCurtain) {
+        runWithCurtain(() => onOpenAllProjects());
+      } else {
+        onOpenAllProjects();
+      }
+    } else {
+      setIsGalleryOpen(true);
     }
   };
 
   const handleNavigateNextProject = (nextSlug: string) => {
     const next = PORTFOLIO_PROJECTS.find((p) => p.slug === nextSlug);
     if (!next) return;
-    if (runWithCurtain) {
-      runWithCurtain(() => setSelectedProject(next));
-    } else {
-      setSelectedProject(next);
-    }
+    handleOpenProject(next);
   };
 
   // Editorial Services directional counter-slide curtain refs (chunk-46.js)
@@ -415,16 +430,22 @@ export function SaliDigiCom({
           const gp = clamp(-dampedTop / span, 0, 1);
 
           // Scrub PrismCTA strokeDashoffset 481 -> 0 (chunk-500 progress)
-          const strokeProg = clamp(gp / 0.92, 0, 1);
+          const strokeProg = clamp(gp / 0.94, 0, 1);
           const nextDash = Math.round(481 * (1 - strokeProg));
           if (nextDash !== lastDash) {
             lastDash = nextDash;
             setPrismDashOffset(nextDash);
           }
 
-          // Camera Z travel through the 4 architectural plates (-120 -> +2120)
-          const spacingZ = 680;
-          const cameraZ = -120 + gp * 2240;
+          // Camera Z travel through all 5 architectural plates (-150 -> +3850)
+          const spacingZ = 750;
+          const cameraZ = -150 + gp * 3950;
+          const allPassed = gp >= 0.88;
+          if (allPassed !== isAllProjectsPassedRef.current) {
+            isAllProjectsPassedRef.current = allPassed;
+            setIsAllProjectsPassed(allPassed);
+          }
+
           const waveBendX = clamp(s.velocity * 0.075, -8.5, 8.5);
           const cursorParX = s.normX * -14;
           const cursorParY = s.normY * 10;
@@ -444,19 +465,19 @@ export function SaliDigiCom({
             }
 
             const sideSign = idx % 2 === 0 ? -1 : 1;
-            const posX = sideSign * vw * 0.225 + cursorParX;
-            const posY = -relZ * 0.15 + 14 + cursorParY;
+            const posX = sideSign * vw * 0.23 + cursorParX;
+            const posY = -relZ * 0.12 + 10 + cursorParY;
 
-            // Smooth emergence out of #090909 deep darkness & fade past camera
+            // Smooth emergence out of deep darkness & fade past camera
             let alpha = 1;
-            if (relZ < -520) {
-              alpha = clamp((relZ + 1920) / 1400, 0, 1);
-            } else if (relZ > 230) {
-              alpha = clamp(1 - (relZ - 230) / 360, 0, 1);
+            if (relZ < -550) {
+              alpha = clamp((relZ + 2100) / 1550, 0, 1);
+            } else if (relZ > 240) {
+              alpha = clamp(1 - (relZ - 240) / 360, 0, 1);
             }
 
             const isHovered = hoveredPoleRef.current === idx;
-            const hoverScale = isHovered ? 0.95 : 1.0;
+            const hoverScale = isHovered ? 0.96 : 1.0;
             const sideYaw = sideSign * -4.5;
 
             plateEl.style.opacity = alpha.toFixed(3);
@@ -901,6 +922,26 @@ export function SaliDigiCom({
       <section id="poles" ref={tunnelSecRef} className="dc-tunnel-section bg-[#1C2C46]">
         {/* Desktop Pinned 3D Z-Corridor (>= 1024px) */}
         <div className="dc-tunnel-sticky">
+          {/* Centered Dynamic CTA Diamond Button */}
+          <div className="dc-tunnel-center-cta pointer-events-auto">
+            <MagneticPrismCta
+              label={isAllProjectsPassed ? 'Voir tous nos projets' : 'Voir le projet'}
+              ariaLabel={
+                isAllProjectsPassed
+                  ? 'Voir toutes nos réalisations'
+                  : `Voir le projet ${PORTFOLIO_PROJECTS[activePoleIndex]?.title || ''}`
+              }
+              dashOffset={prismDashOffset}
+              onClick={() => {
+                if (isAllProjectsPassed) {
+                  handleOpenAllProjects();
+                } else {
+                  handleOpenProject(PORTFOLIO_PROJECTS[activePoleIndex]);
+                }
+              }}
+            />
+          </div>
+
           {/* 3D Perspective Multi-Card Constellations flying past the 360°-spinning SD Diamond */}
           <div className="dc-tunnel-stage" aria-label="Galerie 3D des réalisations SALI DigiCom">
             {PORTFOLIO_PROJECTS.map((proj, idx) => (
@@ -933,31 +974,14 @@ export function SaliDigiCom({
                 className="dc-tunnel-plate group"
                 aria-label={`Étude de cas : ${proj.title}`}
               >
-                {/* 1 Projet = 1 Image de présentation propre, plein format & 100% couleur réelle */}
+                {/* 1 Projet = 1 Planche Portrait haute définition avec gouttières ("routes") et 100% couleur réelle */}
                 <div className="dc-tunnel-single-card">
                   <img
-                    src={proj.primaryImage}
+                    src={proj.portraitBoard || proj.primaryImage}
                     alt={proj.title}
                     loading="eager"
                     className="w-full h-full object-cover select-none"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#1C2C46]/90 via-[#1C2C46]/20 to-transparent" />
-                  <div className="absolute bottom-5 left-6 right-6 flex items-center justify-between">
-                    <div>
-                      <span className="text-xs font-bold text-[#1D9878] uppercase tracking-wider block">
-                        {proj.categoryLabel} · {proj.city}
-                      </span>
-                      <p className="text-xl md:text-2xl font-extrabold text-white mt-1 truncate">
-                        {proj.title}
-                      </p>
-                    </div>
-                    <span className="hidden sm:inline-flex text-xs font-semibold text-white/80 group-hover:text-white group-hover:translate-x-1 transition-all items-center gap-1.5">
-                      <span>Découvrir</span>
-                      <svg className="w-4 h-4 text-[#1D9878]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </span>
-                  </div>
                 </div>
               </button>
             ))}
@@ -1000,7 +1024,7 @@ export function SaliDigiCom({
 
                 <button
                   type="button"
-                  onClick={() => setIsGalleryOpen(true)}
+                  onClick={handleOpenAllProjects}
                   className="hidden md:inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full border border-[#243757] hover:border-[#1D9878] bg-[#131F33]/90 text-xs font-bold text-white uppercase tracking-wider hover:bg-[#1D9878]/15 transition-all shadow-lg"
                 >
                   <svg className="w-4 h-4 text-[#1D9878]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1008,65 +1032,6 @@ export function SaliDigiCom({
                   </svg>
                   <span>Toutes nos réalisations</span>
                 </button>
-              </div>
-            </div>
-
-            <div className="dc-tunnel-hud-bottom">
-              {/* Stacked Masked Directional Project Titles & Summaries */}
-              <div className="dc-tunnel-title-stack" aria-live="polite">
-                {PORTFOLIO_PROJECTS.map((proj, idx) => {
-                  const isCurrent = idx === activePoleIndex;
-                  const inactiveY =
-                    idx < activePoleIndex
-                      ? -108
-                      : idx > activePoleIndex
-                        ? 108
-                        : poleSwitchDir > 0
-                          ? -108
-                          : 108;
-                  return (
-                    <div
-                      key={`hud-title-${proj.id}`}
-                      className={`dc-tunnel-title-item ${isCurrent ? 'is-active' : ''}`}
-                      aria-hidden={!isCurrent}
-                    >
-                      <div className="dc-line-mask">
-                        <span className="text-xs uppercase tracking-widest text-[#1D9878] font-bold block mb-1">
-                          {proj.categoryLabel} · {proj.city}
-                        </span>
-                        <p
-                          className="text-[26px] xl:text-[34px] text-white font-extrabold leading-tight dc-tunnel-mask-line"
-                          style={{
-                            transform: `translate3d(0, ${isCurrent ? 0 : inactiveY}%, 0)`,
-                          }}
-                        >
-                          {proj.title}
-                        </p>
-                      </div>
-                      <div className="dc-line-mask mt-2">
-                        <p
-                          className="text-[15px] text-[#B8C7DA] max-w-[46ch] dc-tunnel-mask-line"
-                          style={{
-                            transform: `translate3d(0, ${isCurrent ? 0 : inactiveY}%, 0)`,
-                            transitionDelay: isCurrent ? '0.06s' : '0s',
-                          }}
-                        >
-                          {proj.excerpt}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Scroll-Scrubbed 160x160 Magnetic Rounded-Diamond Prism CTA */}
-              <div className="pointer-events-auto">
-                <MagneticPrismCta
-                  label="Voir l'étude"
-                  ariaLabel={`Voir l'étude de cas ${PORTFOLIO_PROJECTS[activePoleIndex]?.title || ''}`}
-                  dashOffset={prismDashOffset}
-                  onClick={() => handleOpenProject(PORTFOLIO_PROJECTS[activePoleIndex])}
-                />
               </div>
             </div>
           </div>
@@ -1093,9 +1058,9 @@ export function SaliDigiCom({
                 }}
                 className="dc-gallery-plate group text-left rounded-2xl overflow-hidden border border-[#243757] bg-[#131F33]"
               >
-                <div className="relative aspect-[16/10] overflow-hidden">
+                <div className="relative aspect-[10/14] overflow-hidden">
                   <img
-                    src={proj.primaryImage}
+                    src={proj.portraitBoard || proj.primaryImage}
                     alt={proj.title}
                     loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -1128,7 +1093,7 @@ export function SaliDigiCom({
           <div className="mt-10 flex justify-center">
             <button
               type="button"
-              onClick={() => setIsGalleryOpen(true)}
+              onClick={handleOpenAllProjects}
               className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-[#131F33] hover:bg-[#1D9878] text-white border border-[#243757] hover:border-[#1D9878] font-bold text-sm tracking-wide transition-all shadow-lg"
             >
               <span>Découvrir toutes nos réalisations</span>
@@ -1242,7 +1207,7 @@ export function SaliDigiCom({
 
               <div className="mt-10">
                 <MagneticCta
-                  label="Configurer une offre"
+                  label="Démarrer un projet"
                   onClick={() => onOpenQuestionnaire('website')}
                 />
               </div>
@@ -1327,7 +1292,7 @@ export function SaliDigiCom({
                 className={`dc-choice-btn ${selectedChoice === 'website' ? 'is-selected' : ''}`}
               >
                 <span className="dc-choice-diamond" aria-hidden="true" />
-                <span>Lancer le configurateur Site Web</span>
+                <span>Démarrer mon projet Web</span>
               </button>
 
               <button
@@ -1336,7 +1301,7 @@ export function SaliDigiCom({
                 className={`dc-choice-btn ${selectedChoice === 'community' ? 'is-selected' : ''}`}
               >
                 <span className="dc-choice-diamond" aria-hidden="true" />
-                <span>Lancer le configurateur Social Media</span>
+                <span>Démarrer mon projet Social Media</span>
               </button>
 
               <button
@@ -1444,7 +1409,7 @@ export function SaliDigiCom({
 
               <div className="mt-10 flex flex-wrap items-center justify-between gap-6">
                 <p className="text-[16px] text-[#9a9a9a] max-w-[36ch]">
-                  Besoin d’un chiffrage guidé étape par étape ? Cliquez sur l’un des deux configurateurs ci-dessus.
+                  Besoin d’un chiffrage guidé étape par étape ? Sélectionnez l'une des démarches ci-dessus ou contactez directement notre studio.
                 </p>
                 <MagneticCta
                   type="submit"

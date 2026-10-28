@@ -17,7 +17,7 @@ import {
 
 export type QuestionnaireType = 'website' | 'community' | 'branding';
 
-interface QuestionnaireFlowProps {
+export interface QuestionnaireFlowProps {
   type: QuestionnaireType;
   initialContactInfo?: {
     name?: string;
@@ -27,6 +27,8 @@ interface QuestionnaireFlowProps {
   } | null;
   onClose: () => void;
   onSuccess?: () => void;
+  isStandalonePage?: boolean;
+  onTypeNavigate?: (type: QuestionnaireType) => void;
 }
 
 interface QuestionDef {
@@ -822,7 +824,9 @@ export default function QuestionnaireFlow({
   type,
   initialContactInfo,
   onClose,
-  onSuccess
+  onSuccess,
+  isStandalonePage = false,
+  onTypeNavigate,
 }: QuestionnaireFlowProps) {
   const [activeType, setActiveType] = useState<QuestionnaireType>(type);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
@@ -862,6 +866,9 @@ export default function QuestionnaireFlow({
     setActiveType(newType);
     setCurrentStepIdx(0);
     setSubmitError(null);
+    if (onTypeNavigate) {
+      onTypeNavigate(newType);
+    }
   };
 
   const handleTextChange = (fieldId: string, val: string) => {
@@ -995,12 +1002,20 @@ export default function QuestionnaireFlow({
   const modalContent = (
     <div 
       data-ui="questionnaire-modal"
-      data-modal-type="questionnaire-portal"
-      className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-5 md:p-8 bg-[#0b1320]/90 backdrop-blur-xl animate-fade-in"
-      style={{ zIndex: 120 }}
+      data-modal-type={isStandalonePage ? "questionnaire-page" : "questionnaire-portal"}
+      className={
+        isStandalonePage
+          ? "w-full max-w-4xl mx-auto py-6 sm:py-10 px-4 text-white"
+          : "fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-5 md:p-8 bg-[#0b1320]/90 backdrop-blur-xl animate-fade-in"
+      }
+      style={isStandalonePage ? {} : { zIndex: 120 }}
     >
       <div 
-        className="w-full max-w-4xl max-h-[94vh] bg-[#1C2C46] border border-[#2A4365]/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-white relative font-['Montserrat',sans-serif]"
+        className={
+          isStandalonePage
+            ? "w-full bg-[#1C2C46] border border-[#2A4365]/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-white relative font-['Montserrat',sans-serif]"
+            : "w-full max-w-4xl max-h-[94vh] bg-[#1C2C46] border border-[#2A4365]/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-white relative font-['Montserrat',sans-serif]"
+        }
         style={{
           boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px rgba(29, 152, 120, 0.15)'
         }}
@@ -1019,7 +1034,7 @@ export default function QuestionnaireFlow({
               </div>
               <div>
                 <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-[#1D9878]">
-                  Configurateur Stratégique
+                  Questionnaire Stratégique
                 </span>
                 <h2 className="text-sm sm:text-base font-bold tracking-tight text-white leading-tight">
                   {activeType === 'website' && 'Plateforme Web & E-Commerce'}
@@ -1367,6 +1382,10 @@ export default function QuestionnaireFlow({
       </div>
     </div>
   );
+
+  if (isStandalonePage) {
+    return modalContent;
+  }
 
   // Use createPortal to mount on document.body, avoiding any stacking context conflict
   if (typeof document === 'undefined') return null;

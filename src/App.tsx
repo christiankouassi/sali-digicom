@@ -1,22 +1,23 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import WebGLPrism from './components/WebGLPrism';
 import { SaliDigiCom } from './components/SaliDigiCom';
-import QuestionnaireFlow from './components/QuestionnaireFlow';
 import Logo from './components/Logo';
 import {
   SmoothScrollbar,
   CurvedCurtainTransition,
   subscribeMotion,
 } from './components/MotionPrimitives';
+import { RouterProvider, useRouter } from './utils/router';
+import { ProjectsGalleryPage } from './pages/ProjectsGalleryPage';
+import { ProjectCaseStudyPage } from './pages/ProjectCaseStudyPage';
+import { QuestionnairePage } from './pages/QuestionnairePage';
+import { Globe, Share2, Sparkles, FolderKanban } from 'lucide-react';
 
-export default function App() {
+function AppContent() {
+  const { route, navigate } = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHeaderScrolled, setIsHeaderScrolled] = useState(false);
   const [digicomCurrentSection, setDigicomCurrentSection] = useState(0);
-  const [activeQuestionnaire, setActiveQuestionnaire] = useState<'website' | 'community' | 'branding' | null>(null);
-  const [questionnaireInitialData, setQuestionnaireInitialData] = useState<
-    { name?: string; phone?: string; email?: string; company?: string } | undefined
-  >(undefined);
 
   // Curved Bezier curtain transition state (Ee.prototype from mod-954-core.js)
   const [curtainId, setCurtainId] = useState(0);
@@ -35,8 +36,10 @@ export default function App() {
   const [isReady, setIsReady] = useState<boolean>(() => skipIntroLoader);
 
   useEffect(() => {
-    document.title = 'SALI DigiCom | Agence Digitale, Plateformes Web, Marque & Acquisition';
-  }, []);
+    if (route.type === 'home') {
+      document.title = 'SALI DigiCom | Agence de Marketing & Communication Digitale';
+    }
+  }, [route.type]);
 
   // Authentic Loader sequence: count 00% -> 100%, then drop split digits into baseline mask + collapse line + spin in Prism
   useEffect(() => {
@@ -73,7 +76,7 @@ export default function App() {
     };
   }, [skipIntroLoader]);
 
-  // Header scroll-reactive "Menu" label hide after 0.5 * vh (K.prototype.scroll in mod-954-core.js)
+  // Header scroll-reactive "Menu" label hide after 0.5 * vh
   useEffect(() => {
     let lastScrolled = false;
     return subscribeMotion((s) => {
@@ -86,7 +89,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (isMenuOpen || activeQuestionnaire) {
+    if (isMenuOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -94,7 +97,7 @@ export default function App() {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isMenuOpen, activeQuestionnaire]);
+  }, [isMenuOpen]);
 
   const runWithCurtain = useCallback((action: () => void) => {
     pendingActionRef.current = action;
@@ -129,47 +132,105 @@ export default function App() {
   };
 
   const handleOpenQuestionnaire = useCallback(
-    (
-      type: 'website' | 'community' | 'branding',
-      initialData?: { name?: string; phone?: string; email?: string; company?: string }
-    ) => {
+    (type: 'website' | 'community' | 'branding') => {
+      setIsMenuOpen(false);
+      const targetPath =
+        type === 'website'
+          ? '/creation-de-site-web'
+          : type === 'community'
+            ? '/community-management'
+            : '/identite-visuelle';
+
       runWithCurtain(() => {
-        setQuestionnaireInitialData(initialData);
-        setActiveQuestionnaire(type);
-        setIsMenuOpen(false);
+        navigate(targetPath);
       });
     },
-    [runWithCurtain]
+    [navigate, runWithCurtain]
   );
 
+  const handleOpenAllProjects = useCallback(() => {
+    setIsMenuOpen(false);
+    runWithCurtain(() => {
+      navigate('/projets');
+    });
+  }, [navigate, runWithCurtain]);
+
+  const handleOpenProject = useCallback(
+    (proj: { slug: string }) => {
+      setIsMenuOpen(false);
+      runWithCurtain(() => {
+        navigate(`/projet/${proj.slug}`);
+      });
+    },
+    [navigate, runWithCurtain]
+  );
+
+  // Dedicated Route Views
+  if (route.type === 'projects-gallery') {
+    return (
+      <div className="min-h-screen bg-[#1C2C46]">
+        <CurvedCurtainTransition transitionId={curtainId} onMidpoint={handleCurtainMidpoint} />
+        <ProjectsGalleryPage />
+      </div>
+    );
+  }
+
+  if (route.type === 'project-case-study') {
+    return (
+      <div className="min-h-screen bg-[#1C2C46]">
+        <CurvedCurtainTransition transitionId={curtainId} onMidpoint={handleCurtainMidpoint} />
+        <ProjectCaseStudyPage slug={route.slug} />
+      </div>
+    );
+  }
+
+  if (route.type === 'questionnaire-web') {
+    return (
+      <div className="min-h-screen bg-[#1C2C46]">
+        <CurvedCurtainTransition transitionId={curtainId} onMidpoint={handleCurtainMidpoint} />
+        <QuestionnairePage type="website" />
+      </div>
+    );
+  }
+
+  if (route.type === 'questionnaire-community') {
+    return (
+      <div className="min-h-screen bg-[#1C2C46]">
+        <CurvedCurtainTransition transitionId={curtainId} onMidpoint={handleCurtainMidpoint} />
+        <QuestionnairePage type="community" />
+      </div>
+    );
+  }
+
+  if (route.type === 'questionnaire-branding') {
+    return (
+      <div className="min-h-screen bg-[#1C2C46]">
+        <CurvedCurtainTransition transitionId={curtainId} onMidpoint={handleCurtainMidpoint} />
+        <QuestionnairePage type="branding" />
+      </div>
+    );
+  }
+
+  // Home Page View
   const formattedPct = `${loaderPct < 10 ? `0${loaderPct}` : loaderPct}%`;
   const pctChars = formattedPct.split('');
 
   const menuItems = [
     { label: 'Expertises', id: 'expertises', idx: 2 },
-    { label: 'Nos pôles', id: 'poles', idx: 1 },
+    { label: 'Nos réalisations', id: 'poles', idx: 1 },
     { label: 'Le studio', id: 'atelier', idx: 3 },
     { label: 'Nous contacter', id: 'contact', idx: 4 },
   ];
 
   return (
     <div className={`min-h-[100svh] w-full bg-[#1C2C46] text-white relative ${isReady ? 'is-ready' : ''}`}>
-      {/* =====================================================================
-          RIGHT-EDGE INERTIAL SCROLLBAR THUMB (.c-scrollbar)
-         ===================================================================== */}
+      {/* Scrollbar */}
       <SmoothScrollbar />
 
-      {/* =====================================================================
-          CURVED DOUBLE-BEZIER SVG CURTAIN OVERLAY (Ee.prototype)
-         ===================================================================== */}
-      <CurvedCurtainTransition
-        transitionId={curtainId}
-        onMidpoint={handleCurtainMidpoint}
-      />
+      {/* Curved SVG Curtain */}
+      <CurvedCurtainTransition transitionId={curtainId} onMidpoint={handleCurtainMidpoint} />
 
-      {/* =====================================================================
-          MINIMALIST LOADER (00% -> 100% + SPLIT BASELINE DROP)
-         ===================================================================== */}
+      {/* Minimalist Loader */}
       <div
         className={`dc-loader ${loaderExiting ? 'is-exiting' : ''} ${isReady ? 'is-done' : ''}`}
         aria-hidden="true"
@@ -199,14 +260,10 @@ export default function App() {
         </div>
       </div>
 
-      {/* =====================================================================
-          INTERACTIVE 3D WEBGL MOBIUS OBSIDIAN-CHROME PRISM (#gl)
-         ===================================================================== */}
+      {/* 3D WebGL Monogram SD */}
       <WebGLPrism menuOpen={isMenuOpen} isReady={isReady} />
 
-      {/* =====================================================================
-          FIXED TWO-CORNER HEADER (mix-blend-mode: difference)
-         ===================================================================== */}
+      {/* Fixed Two-Corner Header */}
       <header className="dc-header">
         <div className="dc-container dc-header-row">
           {/* Left: Official Monochrome White SALI DigiCom Logo */}
@@ -223,7 +280,7 @@ export default function App() {
             />
           </button>
 
-          {/* Right: Menu / Scrolled-Blank / Fermer + 45.9x45.9 Rounded-Diamond SVG */}
+          {/* Right: Menu Toggle */}
           <button
             id="burger-toggle"
             type="button"
@@ -257,9 +314,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* =====================================================================
-          FULL-VIEWPORT MENU OVERLAY (.menu) WITH STAGGERED MASKED TITLES
-         ===================================================================== */}
+      {/* Full-Viewport Menu Overlay */}
       <div
         id="mobile-menu"
         role="dialog"
@@ -281,6 +336,18 @@ export default function App() {
                 </button>
               </div>
             ))}
+
+            {/* Direct Link to /projets in menu */}
+            <div className="dc-menu-item-mask pt-2">
+              <button
+                type="button"
+                onClick={handleOpenAllProjects}
+                className="dc-menu-item text-[#1D9878] hover:text-white flex items-center gap-3 text-2xl sm:text-3xl"
+              >
+                <FolderKanban className="w-6 h-6 sm:w-8 sm:h-8" />
+                <span>Voir toutes nos réalisations</span>
+              </button>
+            </div>
           </nav>
         </div>
 
@@ -312,15 +379,8 @@ export default function App() {
             >
               <span className="dc-pill-btn-fill" />
               <span className="dc-pill-btn-content">
-                <svg width="24" height="16" viewBox="0 0 34 22" fill="none" aria-hidden="true">
-                  <path
-                    d="M23.9805 20.5705L31.4172 13.1338C32.7142 11.8367 32.7142 9.73378 31.4172 8.43673L23.9805 1"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  />
-                  <path d="M32.5 10.7773H0" stroke="currentColor" strokeWidth="2" />
-                </svg>
-                <span>Configurateur Site Web</span>
+                <Globe className="w-3.5 h-3.5 text-[#1D9878]" />
+                <span>Création de Site Web</span>
               </span>
             </button>
 
@@ -331,24 +391,27 @@ export default function App() {
             >
               <span className="dc-pill-btn-fill" />
               <span className="dc-pill-btn-content">
-                <svg width="24" height="16" viewBox="0 0 34 22" fill="none" aria-hidden="true">
-                  <path
-                    d="M23.9805 20.5705L31.4172 13.1338C32.7142 11.8367 32.7142 9.73378 31.4172 8.43673L23.9805 1"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  />
-                  <path d="M32.5 10.7773H0" stroke="currentColor" strokeWidth="2" />
-                </svg>
-                <span>Configurateur Social Media</span>
+                <Share2 className="w-3.5 h-3.5 text-[#1D9878]" />
+                <span>Community Management</span>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleOpenQuestionnaire('branding')}
+              className="dc-pill-btn"
+            >
+              <span className="dc-pill-btn-fill" />
+              <span className="dc-pill-btn-content">
+                <Sparkles className="w-3.5 h-3.5 text-[#1D9878]" />
+                <span>Identité Visuelle</span>
               </span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* =====================================================================
-          MAIN DIGITAL-COVER MONOCHROME STAGE
-         ===================================================================== */}
+      {/* Main Digital Stage */}
       <main id="viewport" className={`dc-stage ${isMenuOpen ? 'is-menu-open' : ''}`}>
         <SaliDigiCom
           isActive={true}
@@ -357,32 +420,19 @@ export default function App() {
           currentSection={digicomCurrentSection}
           setCurrentSection={setDigicomCurrentSection}
           onOpenQuestionnaire={handleOpenQuestionnaire}
+          onOpenAllProjects={handleOpenAllProjects}
+          onOpenProject={handleOpenProject}
           runWithCurtain={runWithCurtain}
         />
       </main>
-
-      {/* =====================================================================
-          INTERACTIVE QUESTIONNAIRE MODAL OVERLAY (PORTALED)
-         ===================================================================== */}
-      {activeQuestionnaire && (
-        <QuestionnaireFlow
-          type={activeQuestionnaire}
-          initialContactInfo={
-            questionnaireInitialData
-              ? {
-                  name: questionnaireInitialData.name || '',
-                  email: questionnaireInitialData.email || '',
-                  phone: questionnaireInitialData.phone || '',
-                  company: questionnaireInitialData.company || '',
-                }
-              : null
-          }
-          onClose={() => {
-            setActiveQuestionnaire(null);
-            setQuestionnaireInitialData(undefined);
-          }}
-        />
-      )}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <RouterProvider>
+      <AppContent />
+    </RouterProvider>
   );
 }

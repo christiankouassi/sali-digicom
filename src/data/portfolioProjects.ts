@@ -16,6 +16,7 @@ export interface PortfolioProject {
   secondaryImage: string;
   detailImage: string;
   mobileImage?: string;
+  portraitBoard: string;
   whiteLogo: string;
   gallery: Array<{ src: string; caption: string; type?: 'desktop' | 'mobile' | 'branding' | 'poster' }>;
   deliverables: string[];
@@ -40,6 +41,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     secondaryImage: '/portfolio/websites/cap-section-desktop.jpg',
     detailImage: '/portfolio/websites/cap-detail-desktop.jpg',
     mobileImage: '/portfolio/websites/cap-mobile.jpg',
+    portraitBoard: '/portfolio/boards/board-cap-investment.jpg',
     whiteLogo: '/portfolio/logos/cap-white.png',
     gallery: [
       { src: '/portfolio/websites/cap-hero-desktop.jpg', caption: 'Écran d’accueil immersif avec typographie statutaire', type: 'desktop' },
@@ -66,6 +68,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     secondaryImage: '/portfolio/websites/gueliz-section-desktop.jpg',
     detailImage: '/portfolio/websites/gueliz-detail-desktop.jpg',
     mobileImage: '/portfolio/websites/gueliz-mobile.jpg',
+    portraitBoard: '/portfolio/boards/board-gueliz-properties.jpg',
     whiteLogo: '/portfolio/logos/gueliz-white.png',
     gallery: [
       { src: '/portfolio/websites/gueliz-hero-desktop.jpg', caption: 'Hero screen épuré mettant en valeur les résidences d’exception', type: 'desktop' },
@@ -95,6 +98,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     secondaryImage: '/portfolio/websites/imtiaz-section-desktop.jpg',
     detailImage: '/portfolio/websites/imtiaz-detail-desktop.jpg',
     mobileImage: '/portfolio/websites/imtiaz-mobile.jpg',
+    portraitBoard: '/portfolio/boards/board-imtiaz-taamine.jpg',
     whiteLogo: '/portfolio/logos/imtiaz-white.png',
     gallery: [
       { src: '/portfolio/websites/imtiaz-hero-desktop.jpg', caption: 'Portail d’accueil centré sur la clarté des garanties d’assurance', type: 'desktop' },
@@ -120,6 +124,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     primaryImage: '/portfolio/axeon/axeon-campagne-01.jpg',
     secondaryImage: '/portfolio/axeon/axeon-post-01.jpg',
     detailImage: '/portfolio/axeon/axeon-post-02.jpg',
+    portraitBoard: '/portfolio/boards/board-axeon-media.jpg',
     whiteLogo: '/portfolio/logos/axeon-white.png',
     gallery: [
       { src: '/portfolio/axeon/axeon-campagne-01.jpg', caption: 'Campagne de lancement événementiel — format poster haute visibilité', type: 'poster' },
@@ -147,6 +152,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     primaryImage: '/portfolio/branding/capassur-banner-showcase.jpg',
     secondaryImage: '/portfolio/branding/capassur-charte-cover.jpg',
     detailImage: '/portfolio/branding/capassur-charte-logos.jpg',
+    portraitBoard: '/portfolio/boards/board-cap-assur.jpg',
     whiteLogo: '/portfolio/logos/capassur-white.png',
     gallery: [
       { src: '/portfolio/branding/capassur-banner-showcase.jpg', caption: 'Bannières corporate LinkedIn et Facebook déployées pour la marque', type: 'branding' },
