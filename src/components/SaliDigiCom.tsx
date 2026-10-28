@@ -440,7 +440,7 @@ export function SaliDigiCom({
           // Camera Z travel through all 5 architectural plates (-150 -> +3850)
           const spacingZ = 750;
           const cameraZ = -150 + gp * 3950;
-          const allPassed = gp >= 0.88;
+          const allPassed = gp >= 0.76;
           if (allPassed !== isAllProjectsPassedRef.current) {
             isAllProjectsPassedRef.current = allPassed;
             setIsAllProjectsPassed(allPassed);
@@ -787,9 +787,9 @@ export function SaliDigiCom({
               as="p"
               className="dc-statement max-w-[34ch]"
               lines={[
-                'Nous dessinons et développons',
-                'des plateformes web sur mesure',
-                'conçues pour la conversion.',
+                "Nous combinons l'esprit de création artistique",
+                "à la rigueur technique pour concevoir",
+                "des expériences numériques remarquables.",
               ]}
             />
             <div>
@@ -937,7 +937,7 @@ export function SaliDigiCom({
             {/* Bouton 2: Placé au centre géométrique de l'écran, en profondeur Z DERRIÈRE les planches de projets */}
             <div
               className={`dc-tunnel-center-behind-cta transition-opacity duration-700 ease-out ${
-                isAllProjectsPassed ? 'opacity-100 pointer-events-auto' : 'opacity-70 pointer-events-none'
+                isAllProjectsPassed ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
               }`}
             >
               <button
@@ -1472,48 +1472,6 @@ export function SaliDigiCom({
 
           <div className="dc-footer-bottom text-[16px] text-[#9a9a9a]">
             <p>© {new Date().getFullYear()} SALI DigiCom. Tous droits réservés.</p>
-            <p className="max-w-[54ch]">
-              Photographies &amp; séquences architecturales sous licence libre : Dietmar Rabich, A S M Jobaer, Basile Morin (CC BY-SA 4.0) et Peter Tomaszewicz (CC BY 3.0) via Wikimedia Commons.
-            </p>
-          </div>
-
-          {/* Grand trait géométrique / Demi-triangle situé dans le footer tout en bas avec l'icône SD 3D */}
-          <div className="dc-footer-bottom-apex relative mt-16 pt-6 flex flex-col items-center justify-end overflow-hidden">
-            <svg
-              className="w-full max-w-5xl h-24 sm:h-32 pointer-events-none"
-              viewBox="0 0 1200 140"
-              fill="none"
-              preserveAspectRatio="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              <path
-                d="M0 140L600 14L1200 140H0Z"
-                fill="url(#dcFooterApexGrad)"
-                stroke="rgba(29, 152, 120, 0.45)"
-                strokeWidth="1.5"
-              />
-              <defs>
-                <linearGradient id="dcFooterApexGrad" x1="600" y1="14" x2="600" y2="140" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#131F33" stopOpacity="0.95" />
-                  <stop offset="1" stopColor="#1C2C46" stopOpacity="0.98" />
-                </linearGradient>
-              </defs>
-            </svg>
-
-            {/* Présence de l'icône SD 3D au bas du footer */}
-            <div className="absolute bottom-4 flex flex-col items-center pointer-events-none">
-              <div className="w-14 h-14 rounded-full border border-[#1D9878]/40 flex items-center justify-center bg-[#131F33]/85 backdrop-blur-md shadow-lg shadow-[#1D9878]/15">
-                <img
-                  src="/logo-digicom-white-icon.png"
-                  alt="SD Monogram"
-                  className="w-7 h-7 object-contain opacity-95"
-                />
-              </div>
-              <span className="text-[10px] font-bold tracking-[0.25em] text-[#1D9878] uppercase mt-1.5">
-                SALI DigiCom Architecture
-              </span>
-            </div>
           </div>
         </div>
 
