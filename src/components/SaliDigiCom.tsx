@@ -367,34 +367,9 @@ export function SaliDigiCom({
         }
       }
 
-      // 3. SHOWREEL CURSOR-CHASING DIAMOND BUTTON (chunk-174.js + module 2959)
-      if (stageEl && videoFollowerRef.current) {
-        if (vw >= 900 && !s.reducedMotion) {
-          const vr = stageEl.getBoundingClientRect();
-          let targetX = 0;
-          let targetY = 0;
-          if (
-            videoFollower.inside &&
-            s.cursorX >= vr.left &&
-            s.cursorX <= vr.right &&
-            s.cursorY >= vr.top &&
-            s.cursorY <= vr.bottom
-          ) {
-            const maxX = Math.max(0, vr.width * 0.42);
-            const maxY = Math.max(0, vr.height * 0.34);
-            targetX = clamp(s.cursorX - (vr.left + vr.width * 0.5), -maxX, maxX);
-            targetY = clamp(s.cursorY - (vr.top + vr.height * 0.5), -maxY, maxY);
-          }
-          videoFollower.lerpX += (targetX - videoFollower.lerpX) * 0.095;
-          videoFollower.lerpY += (targetY - videoFollower.lerpY) * 0.095;
-          const targetRot = videoFollower.inside ? clamp(s.cursorDeltaX * 0.65, -14, 14) : 0;
-          videoFollower.rot += (targetRot - videoFollower.rot) * 0.12;
+      // 3. SHOWREEL PLAY/PAUSE DIAMOND BUTTON: Anchored cleanly in bottom-right corner (desktop/tablet only, hidden on mobile)
+      // Styling and hover states are handled purely via CSS to ensure zero obstruction over the video center.
 
-          videoFollowerRef.current.style.transform = `translate3d(calc(-50% + ${videoFollower.lerpX.toFixed(1)}px), calc(-50% + ${videoFollower.lerpY.toFixed(1)}px), 0) rotate(${videoFollower.rot.toFixed(2)}deg)`;
-        } else {
-          videoFollowerRef.current.style.transform = 'translate3d(-50%, -50%, 0)';
-        }
-      }
 
       // 4. STICKY KINETIC SENTENCE LINE-BY-LINE IN -> HOLD -> OUT (chunk-239.js)
       if (sentenceRef.current) {
@@ -849,7 +824,7 @@ export function SaliDigiCom({
                   toggleShowreel();
                 }}
                 aria-label={isVideoPlaying ? 'Mettre la vidéo en pause' : 'Lancer la vidéo'}
-                className={`dc-video-diamond-btn ${isVideoPlaying ? 'is-playing' : ''}`}
+                className={`dc-video-diamond-btn hidden md:flex ${isVideoPlaying ? 'is-playing' : ''}`}
               >
                 <svg
                   width="74"

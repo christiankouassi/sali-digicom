@@ -946,27 +946,39 @@ a {
 
 .dc-video-diamond-btn {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate3d(-50%, -50%, 0);
-  width: 78px;
-  height: 78px;
+  right: clamp(16px, 2.5vw, 28px);
+  bottom: clamp(16px, 2.5vw, 28px);
+  top: auto;
+  left: auto;
+  width: 52px;
+  height: 52px;
   background: transparent;
   border: 0;
   padding: 0;
   cursor: pointer;
-  z-index: 3;
-  will-change: transform;
+  z-index: 4;
+  opacity: 0.85;
+  transition: transform 0.4s var(--dc-expo), opacity 0.4s var(--dc-expo);
 }
 
 .dc-video-diamond-btn svg {
   width: 100%;
   height: 100%;
-  transition: transform 0.55s var(--dc-expo);
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.5));
+  transition: transform 0.45s var(--dc-expo);
 }
 
 .dc-video-diamond-btn:hover svg {
-  transform: scale(1.08);
+  transform: scale(1.1);
+}
+
+.dc-video-diamond-btn.is-playing {
+  opacity: 0.72;
+}
+
+.dc-video-diamond-btn:hover,
+.dc-video-stage:hover .dc-video-diamond-btn {
+  opacity: 1;
 }
 
 .dc-video-diamond-label {
@@ -975,14 +987,15 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   color: var(--dc-bg);
   pointer-events: none;
 }
 
 .dc-video-label-mask {
-  height: 18px;
+  height: 16px;
   overflow: hidden;
   display: block;
 }
@@ -991,8 +1004,8 @@ a {
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: transform 0.65s var(--dc-expo);
-  transform: translate3d(0, -18px, 0);
+  transition: transform 0.55s var(--dc-expo);
+  transform: translate3d(0, -16px, 0);
 }
 
 .dc-video-diamond-btn.is-playing .dc-video-label-track {
@@ -1000,8 +1013,8 @@ a {
 }
 
 .dc-video-label-track > span {
-  height: 18px;
-  line-height: 18px;
+  height: 16px;
+  line-height: 16px;
   display: block;
 }
 
@@ -1018,14 +1031,19 @@ a {
   gap: 16px;
 }
 
+@media (max-width: 768px) {
+  .dc-video-diamond-btn {
+    display: none !important;
+  }
+}
+
 @media (max-width: 680px) {
   .dc-video-stage {
     aspect-ratio: 16 / 9;
     border-radius: 18px;
   }
   .dc-video-diamond-btn {
-    top: 50%;
-    transform: translate3d(-50%, -50%, 0) scale(0.85);
+    display: none !important;
   }
 }
 
