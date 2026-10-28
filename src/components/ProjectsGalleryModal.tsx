@@ -152,13 +152,6 @@ export function ProjectsGalleryModal({
                     </span>
                   )}
                 </div>
-
-                {/* Client logo plate */}
-                {project.whiteLogo && (
-                  <div className="absolute bottom-3 right-3 p-2 rounded-lg bg-[#131F33]/80 backdrop-blur-md border border-[#243757]">
-                    <img src={project.whiteLogo} alt="" className="h-6 w-auto object-contain" />
-                  </div>
-                )}
               </div>
 
               {/* Card Meta Content */}

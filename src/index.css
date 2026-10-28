@@ -1020,10 +1020,12 @@ a {
 
 @media (max-width: 680px) {
   .dc-video-stage {
-    aspect-ratio: 4 / 5;
+    aspect-ratio: 16 / 9;
+    border-radius: 18px;
   }
   .dc-video-diamond-btn {
-    top: 38%;
+    top: 50%;
+    transform: translate3d(-50%, -50%, 0) scale(0.85);
   }
 }
 
@@ -1181,6 +1183,7 @@ a {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
   filter: none !important; /* 100% full authentic vibrant color, 0 grayscale */
   transition: transform 0.8s var(--dc-expo);
 }
@@ -1309,6 +1312,21 @@ a {
   padding: 0;
   text-align: left;
   cursor: pointer;
+}
+
+.dc-mobile-poles .dc-gallery-plate {
+  aspect-ratio: auto;
+  height: auto;
+  overflow: hidden;
+  background-color: #131F33;
+}
+
+.dc-mobile-poles .dc-gallery-plate::after {
+  display: none;
+}
+
+.dc-mobile-poles .dc-gallery-plate img {
+  object-position: center top;
 }
 
 .dc-gallery-plate img {

@@ -1066,11 +1066,6 @@ export function SaliDigiCom({
                     loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  {proj.whiteLogo && (
-                    <div className="absolute bottom-3 right-3 p-2 rounded-lg bg-[#131F33]/85 backdrop-blur-md border border-[#243757]">
-                      <img src={proj.whiteLogo} alt="" className="h-5 w-auto object-contain" />
-                    </div>
-                  )}
                 </div>
                 <div className="p-5">
                   <span className="text-xs font-bold text-[#1D9878] uppercase tracking-wider">
