@@ -340,12 +340,12 @@ export default function WebGLPrism({ menuOpen = false, isReady = true }: WebGLPr
         const footerRect = footerEl?.getBoundingClientRect();
 
         if (footerRect && footerRect.top < vh * 0.95) {
-          // Footer mode: anchored at the bottom of the footer above the bottom copyright bar
+          // Footer mode: anchored gracefully at the bottom of the footer
           goalX = 0.0; // Strictly centered
-          goalY = isMobile ? -0.38 : -0.32; // Centered at the bottom of the footer
-          goalZ = isMobile ? -5.5 : -4.8;
-          goalScale = isMobile ? 0.72 : 0.95;
-          goalOpacity = 0.92;
+          goalY = isMobile ? -0.45 : -0.32; // Centered at the bottom of the footer
+          goalZ = isMobile ? -6.2 : -4.8;
+          goalScale = isMobile ? 0.52 : 0.95;
+          goalOpacity = isMobile ? 0.32 : 0.92; // Subtle ambient watermark on mobile to ensure perfect text contrast
           waypointRotX = 0.12 - curMouseY * 0.08;
           waypointRotY = Math.sin(elapsed * 0.75) * 0.32 + curMouseX * 0.15;
           waypointRotZ = 0.0;

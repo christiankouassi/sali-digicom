@@ -219,8 +219,8 @@ export function ProjectCaseStudyPage({ slug, onNavigateWithCurtain }: ProjectCas
           HEADER FIXE DIGITAL COVER STYLE
          ===================================================================== */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#131F33]/95 border-b border-white/10 transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-6 py-4 md:px-12 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-3.5 sm:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3 sm:gap-4">
             <button
               type="button"
               onClick={() => handleNav('/')}
@@ -230,7 +230,7 @@ export function ProjectCaseStudyPage({ slug, onNavigateWithCurtain }: ProjectCas
               <Logo
                 variant="digicom"
                 type="horizontal"
-                className="h-8 md:h-9 w-auto opacity-95 group-hover:opacity-100 transition-opacity"
+                className="h-7 sm:h-8 md:h-9 w-auto opacity-95 group-hover:opacity-100 transition-opacity"
               />
             </button>
             <span className="hidden sm:inline-block h-4 w-px bg-[#283D60]" />
@@ -239,11 +239,11 @@ export function ProjectCaseStudyPage({ slug, onNavigateWithCurtain }: ProjectCas
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => handleNav('/projets')}
-              className="flex items-center gap-2 px-4 py-2 rounded-full border border-[#243757] hover:border-[#1D9878] bg-[#131F33]/80 hover:bg-[#1D9878]/10 text-xs font-semibold text-[#B8C7DA] hover:text-white transition-all cursor-pointer"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[#243757] hover:border-[#1D9878] bg-[#131F33]/80 hover:bg-[#1D9878]/10 text-xs font-semibold text-[#B8C7DA] hover:text-white transition-all cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Toutes les réalisations</span>
@@ -435,11 +435,11 @@ export function ProjectCaseStudyPage({ slug, onNavigateWithCurtain }: ProjectCas
             {/* Mobile Column (4 cols) */}
             {project.mobileImage && (
               <FadeIn delay={0.2} x={-30} duration={1.3} className="lg:col-span-4 flex justify-center">
-                <div className="w-[280px] sm:w-[300px] h-[580px] sm:h-[620px] rounded-[44px] p-3.5 bg-[#0A101A] border-2 border-white/20 shadow-2xl flex flex-col justify-between shrink-0 relative">
+                <div className="w-[260px] xs:w-[280px] sm:w-[300px] max-w-[calc(100vw-3rem)] h-[520px] sm:h-[580px] lg:h-[620px] rounded-[38px] sm:rounded-[44px] p-3 sm:p-3.5 bg-[#0A101A] border-2 border-white/20 shadow-2xl flex flex-col justify-between shrink-0 relative">
                   {/* Speaker notch */}
                   <div className="w-20 h-4 bg-[#1C2C46] rounded-full mx-auto mb-2 shrink-0" />
                   <div
-                    className="flex-1 w-full rounded-[30px] overflow-hidden bg-[#0E1624] border border-white/10 group cursor-pointer relative"
+                    className="flex-1 w-full rounded-[26px] sm:rounded-[30px] overflow-hidden bg-[#0E1624] border border-white/10 group cursor-pointer relative"
                     onClick={() =>
                       setSelectedGalleryImg({
                         src: project.mobileImage!,
@@ -467,7 +467,7 @@ export function ProjectCaseStudyPage({ slug, onNavigateWithCurtain }: ProjectCas
               className={project.mobileImage ? 'lg:col-span-8' : 'lg:col-span-12'}
             >
               <div
-                className="w-full h-[580px] sm:h-[620px] rounded-3xl overflow-hidden border border-[#243757] bg-[#131F33] shadow-2xl flex flex-col group cursor-pointer"
+                className="w-full h-[320px] xs:h-[380px] sm:h-[480px] lg:h-[620px] rounded-2xl sm:rounded-3xl overflow-hidden border border-[#243757] bg-[#131F33] shadow-2xl flex flex-col group cursor-pointer"
                 onClick={() =>
                   setSelectedGalleryImg({
                     src: project.primaryImage || project.secondaryImage,
@@ -502,7 +502,7 @@ export function ProjectCaseStudyPage({ slug, onNavigateWithCurtain }: ProjectCas
           {(project.secondaryImage || project.detailImage) && (
             <FadeIn delay={0.4} y={35} duration={1.3}>
               <div
-                className="rounded-3xl overflow-hidden border border-[#243757] bg-[#131F33] shadow-2xl group cursor-pointer"
+                className="rounded-2xl sm:rounded-3xl overflow-hidden border border-[#243757] bg-[#131F33] shadow-2xl group cursor-pointer"
                 onClick={() =>
                   setSelectedGalleryImg({
                     src: project.secondaryImage || project.detailImage!,
@@ -510,14 +510,14 @@ export function ProjectCaseStudyPage({ slug, onNavigateWithCurtain }: ProjectCas
                   })
                 }
               >
-                <div className="w-full h-[360px] sm:h-[460px] overflow-hidden bg-[#0e1624]">
+                <div className="w-full h-[220px] xs:h-[280px] sm:h-[380px] md:h-[460px] overflow-hidden bg-[#0e1624]">
                   <img
                     src={project.secondaryImage || project.detailImage}
                     alt={`${project.title} - Détail`}
                     className="w-full h-full object-cover object-center group-hover:scale-103 transition-transform duration-700 select-none"
                   />
                 </div>
-                <div className="p-5 bg-[#131F33] border-t border-[#243757] flex items-center justify-between">
+                <div className="p-4 sm:p-5 bg-[#131F33] border-t border-[#243757] flex items-center justify-between">
                   <span className="text-xs sm:text-sm text-[#B8C7DA]">
                     Détail d'interface, rigueur des grilles &amp; contrastes de marque
                   </span>
@@ -687,23 +687,23 @@ export function ProjectCaseStudyPage({ slug, onNavigateWithCurtain }: ProjectCas
                   handleNav(`/projet/${nextProject.slug}`);
                 }
               }}
-              className="p-8 sm:p-16 md:p-20 rounded-3xl bg-[#131F33]/90 border border-[#243757] hover:border-[#1D9878] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-10 group transition-all duration-700 shadow-[0_30px_90px_-20px_rgba(0,0,0,0.8)] cursor-pointer"
+              className="p-6 sm:p-12 md:p-20 rounded-2xl sm:rounded-3xl bg-[#131F33]/90 border border-[#243757] hover:border-[#1D9878] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 sm:gap-10 group transition-all duration-700 shadow-[0_30px_90px_-20px_rgba(0,0,0,0.8)] cursor-pointer"
             >
               <div className="max-w-3xl">
                 <span className="text-xs sm:text-sm uppercase tracking-[0.25em] text-[#1D9878] font-bold block mb-4 flex items-center gap-2.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#1D9878] animate-pulse" />
                   <span>Projet Suivant</span>
                 </span>
-                <h3 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white group-hover:text-[#1D9878] transition-colors duration-500 leading-[0.95] tracking-tight">
+                <h3 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-white group-hover:text-[#1D9878] transition-colors duration-500 leading-[0.95] tracking-tight">
                   {nextProject.title}
                 </h3>
-                <p className="text-base sm:text-lg md:text-xl text-[#B8C7DA] mt-5 font-light">
+                <p className="text-base sm:text-lg md:text-xl text-[#B8C7DA] mt-4 sm:mt-5 font-light">
                   {nextProject.categoryLabel} · {nextProject.city} · {nextProject.year}
                 </p>
               </div>
 
-              <div className="flex items-center gap-6 shrink-0 self-start lg:self-center">
-                <div className="w-24 h-32 sm:w-32 sm:h-44 md:w-36 md:h-48 rounded-2xl overflow-hidden border border-white/20 bg-[#0E1624] shadow-2xl group-hover:scale-105 group-hover:border-[#1D9878] transition-all duration-500">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6 shrink-0 self-stretch sm:self-auto lg:self-center">
+                <div className="hidden xs:block w-24 h-32 sm:w-32 sm:h-44 md:w-36 md:h-48 rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 bg-[#0E1624] shadow-2xl group-hover:scale-105 group-hover:border-[#1D9878] transition-all duration-500 shrink-0">
                   <img
                     src={nextProject.portraitBoard || nextProject.primaryImage}
                     alt={nextProject.title}
@@ -717,7 +717,7 @@ export function ProjectCaseStudyPage({ slug, onNavigateWithCurtain }: ProjectCas
                     e.stopPropagation();
                     handleNav(`/projet/${nextProject.slug}`);
                   }}
-                  className="inline-flex items-center gap-3 px-8 py-5 rounded-full bg-[#1D9878] group-hover:bg-[#167d63] text-white font-bold text-xs sm:text-sm uppercase tracking-wider transition-all shadow-xl shadow-[#1D9878]/30 group-hover:scale-105 active:scale-95 cursor-pointer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-6 sm:px-8 py-4 sm:py-5 rounded-full bg-[#1D9878] group-hover:bg-[#167d63] text-white font-bold text-xs sm:text-sm uppercase tracking-wider transition-all shadow-xl shadow-[#1D9878]/30 group-hover:scale-105 active:scale-95 cursor-pointer text-center"
                 >
                   <span>Découvrir le projet</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform" />

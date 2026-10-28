@@ -128,7 +128,7 @@ export const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ slug, onNa
         </div>
 
         {/* Hero Visual Scene */}
-        <div className="mt-14 rounded-3xl overflow-hidden border border-[#243757] bg-[#131F33] shadow-2xl relative aspect-[16/9] md:aspect-[21/9] min-h-[380px] max-h-[640px]">
+        <div className="mt-10 sm:mt-14 w-full max-w-full rounded-2xl sm:rounded-3xl overflow-hidden border border-[#243757] bg-[#131F33] shadow-2xl relative aspect-[16/10] sm:aspect-[16/9] lg:aspect-[21/9] max-h-[640px]">
           <img
             src={service.heroImage}
             alt={service.title}

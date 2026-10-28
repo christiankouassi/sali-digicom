@@ -108,7 +108,7 @@ export function ProjectsGalleryPage({ onOpenProject, onNavigateWithCurtain }: Pr
       <section ref={tunnelSecRef} className="dc-tunnel-section bg-[#1C2C46]">
         <div className="dc-tunnel-sticky relative overflow-hidden">
           {/* Top Header Fixed Bar */}
-          <div className="absolute top-8 left-8 right-8 flex items-center justify-between z-40 pointer-events-none">
+          <div className="absolute top-5 sm:top-8 left-4 sm:left-8 right-4 sm:right-8 flex items-center justify-between z-40 pointer-events-none">
             <div className="pointer-events-auto">
               <button
                 type="button"
@@ -116,7 +116,7 @@ export function ProjectsGalleryPage({ onOpenProject, onNavigateWithCurtain }: Pr
                 className="group focus:outline-none cursor-pointer"
                 aria-label="Accueil SALI DigiCom"
               >
-                <Logo variant="digicom" type="horizontal" className="h-8 md:h-9 w-auto opacity-95 group-hover:opacity-100 transition-opacity" />
+                <Logo variant="digicom" type="horizontal" className="h-7 sm:h-8 md:h-9 w-auto opacity-95 group-hover:opacity-100 transition-opacity" />
               </button>
             </div>
 

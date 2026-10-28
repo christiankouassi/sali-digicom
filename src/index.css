@@ -775,11 +775,11 @@ a {
 }
 
 .dc-word-monument--top {
-  font-size: clamp(74px, 18.8vw, 272px);
+  font-size: clamp(56px, 18.8vw, 272px);
 }
 
 .dc-word-monument--bottom {
-  font-size: clamp(54px, 14.2vw, 208px);
+  font-size: clamp(40px, 13.5vw, 208px);
   text-align: right;
   margin-left: auto;
 }
@@ -1612,10 +1612,15 @@ a {
 
 .dc-field-wrap {
   position: relative;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 input.dc-input,
-textarea.dc-textarea {
+textarea.dc-textarea,
+select.dc-input {
+  box-sizing: border-box;
+  max-width: 100%;
   width: 100%;
   background: transparent;
   border: 0;
@@ -1629,7 +1634,8 @@ textarea.dc-textarea {
 }
 
 input.dc-input::placeholder,
-textarea.dc-textarea::placeholder {
+textarea.dc-textarea::placeholder,
+select.dc-input::placeholder {
   color: var(--dc-muted);
 }
 
